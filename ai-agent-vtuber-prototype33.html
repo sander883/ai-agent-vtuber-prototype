@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AiChan — AI Agent Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#0a0a0f;
+  --bg-panel:#111118;
+  --bg-card:#1a1a24;
+  --bg-hover:#22222e;
+  --bg-input:#14141c;
+  --accent:#8b7cf6;
+  --accent-dim:#6b5ce7;
+  --accent-glow:rgba(139,124,246,0.15);
+  --accent-soft:rgba(139,124,246,0.08);
+  --teal:#5ce7c0;
+  --teal-dim:rgba(92,231,192,0.12);
+  --coral:#f07b6e;
+  --coral-dim:rgba(240,123,110,0.12);
+  --pink:#e76baf;
+  --amber:#efb85a;
+  --text-primary:#e8e6f0;
+  --text-secondary:#8886a0;
+  --text-muted:#5c5a72;
+  --border:rgba(255,255,255,0.06);
+  --border-hover:rgba(255,255,255,0.12);
+  --radius:12px;
+  --radius-sm:8px;
+  --radius-xs:6px;
+  --font:'Outfit',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg-deep);color:var(--text-primary);display:flex}
+
+/* ── Sidebar ── */
+.sidebar{width:60px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;z-index:10}
+.sidebar .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#af8cf6);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-weight:700;font-size:14px;color:#fff}
+.nav-btn{width:40px;height:40px;border-radius:var(--radius-sm);border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;font-size:18px}
+.nav-btn:hover{background:var(--accent-soft);color:var(--text-secondary)}
+.nav-btn.active{background:var(--accent-glow);color:var(--accent)}
+.nav-btn.active::before{content:'';position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--accent);border-radius:0 3px 3px 0}
+.sidebar-spacer{flex:1}
+
+/* ── Main layout ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.top-bar{height:44px;background:var(--bg-panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
+.top-bar .title{font-size:13px;font-weight:500;color:var(--text-secondary)}
+.top-bar .status-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px rgba(92,231,192,0.5)}
+.top-bar .tag{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--accent-soft);color:var(--accent);font-weight:500}
+.top-spacer{flex:1}
+.top-btn{width:32px;height:32px;border-radius:var(--radius-xs);border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s}
+.top-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+
+.content-area{flex:1;display:flex;overflow:hidden}
+
+/* ── Character viewport ── */
+.viewport{flex:1;position:relative;background:var(--bg-deep);overflow:hidden}
+.viewport canvas{width:100%!important;height:100%!important;display:block}
+.viewport-overlay{position:absolute;inset:0;pointer-events:none}
+.viewport-grain{position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")}
+.mood-indicator{position:absolute;top:16px;left:16px;pointer-events:auto;display:flex;align-items:center;gap:8px;background:rgba(17,17,24,0.8);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 10px}
+.mood-indicator .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:pulse 2s ease-in-out infinite}
+.mood-indicator span{font-size:12px;color:var(--text-secondary);font-weight:500}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.expression-panel{position:absolute;top:16px;right:16px;pointer-events:auto;display:flex;flex-direction:column;gap:6px}
+.expr-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(17,17,24,0.7);backdrop-filter:blur(12px);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
+.expr-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(139,124,246,0.1)}
+.expr-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(139,124,246,0.15)}
+
+.pose-panel{position:absolute;bottom:56px;left:16px;pointer-events:auto;display:flex;flex-wrap:wrap;gap:6px;max-width:280px}
+.pose-btn{font-size:11px!important;padding:0 10px!important;height:30px!important}
+.pose-btn.active{border-color:var(--accent)!important;color:var(--accent)!important;background:rgba(139,124,246,0.1)!important}
+
+.quick-actions{position:absolute;bottom:16px;left:16px;pointer-events:auto;display:flex;gap:8px}
+.qa-btn{height:34px;border-radius:20px;border:1px solid var(--border);background:rgba(17,17,24,0.7);backdrop-filter:blur(12px);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:6px;padding:0 14px;font-size:12px;font-family:var(--font);font-weight:500;transition:all .2s}
+.qa-btn:hover{border-color:var(--accent);color:var(--accent)}
+.qa-btn svg{width:14px;height:14px}
+
+.drop-zone{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,10,15,0.85);backdrop-filter:blur(8px);z-index:5}
+.drop-zone.active{display:flex}
+.drop-zone-inner{text-align:center;padding:40px;border:2px dashed var(--accent);border-radius:var(--radius);color:var(--accent)}
+.drop-zone-inner p{margin-top:8px;font-size:14px;color:var(--text-secondary)}
+
+/* ── Right panel ── */
+.right-panel{width:240px;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.panel-section{padding:16px;border-bottom:1px solid var(--border)}
+.panel-section:last-child{border-bottom:none}
+.panel-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px}
+.stat-card{background:var(--bg-card);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:6px}
+.stat-card:last-child{margin-bottom:0}
+.stat-card .stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
+.stat-card .stat-value{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
+.stat-bar{height:3px;border-radius:2px;background:var(--bg-hover);margin-top:6px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+
+.skill-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;margin:0 4px 4px 0}
+.skill-tag.coding{background:var(--accent-soft);color:var(--accent)}
+.skill-tag.research{background:var(--teal-dim);color:var(--teal)}
+.skill-tag.creative{background:var(--coral-dim);color:var(--coral)}
+.skill-tag.locked{background:var(--bg-card);color:var(--text-muted);border:1px dashed var(--border)}
+
+.task-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px}
+.task-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.task-check.done{border-color:var(--teal);background:var(--teal);color:var(--bg-deep)}
+.task-check.done svg{display:block}
+.task-item.done .task-text{text-decoration:line-through;color:var(--text-muted)}
+
+/* ── Bottom tabs ── */
+.bottom-tabs{height:38px;background:var(--bg-panel);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:2px;flex-shrink:0}
+.tab-btn{height:28px;padding:0 12px;border-radius:6px;border:none;background:transparent;color:var(--text-muted);font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
+.tab-btn:hover{color:var(--text-secondary);background:var(--bg-hover)}
+.tab-btn.active{color:var(--accent);background:var(--accent-soft)}
+.tab-btn svg{width:13px;height:13px}
+
+/* ── Bottom panel (terminal/chat) ── */
+.bottom-panel{height:0;background:var(--bg-panel);border-top:1px solid var(--border);transition:height .3s ease;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column}
+.bottom-panel.open{height:260px}
+
+/* ── Chat ── */
+.chat-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--bg-hover);border-radius:2px}
+
+.msg{display:flex;gap:10px;max-width:85%;animation:msgIn .3s ease}
+.msg.agent{align-self:flex-start}
+.msg.user{align-self:flex-end;flex-direction:row-reverse}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+.msg-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.msg.agent .msg-avatar{background:linear-gradient(135deg,var(--accent),#af8cf6);color:#fff}
+.msg.user .msg-avatar{background:var(--bg-card);color:var(--text-secondary);border:1px solid var(--border)}
+
+.msg-bubble{padding:10px 14px;font-size:13px;line-height:1.6;border-radius:16px}
+.msg.agent .msg-bubble{background:var(--bg-card);border-bottom-left-radius:4px;color:var(--text-primary)}
+.msg.user .msg-bubble{background:var(--accent-dim);border-bottom-right-radius:4px;color:#fff}
+
+.msg-time{font-size:10px;color:var(--text-muted);margin-top:4px;padding:0 4px}
+.msg.user .msg-time{text-align:right}
+
+.typing-indicator{display:flex;gap:4px;padding:10px 14px;background:var(--bg-card);border-radius:16px;border-bottom-left-radius:4px;width:fit-content}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typingBounce 1.2s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes typingBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+.chat-input-area{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.chat-input{flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
+.chat-input:focus{border-color:var(--accent)}
+.chat-input::placeholder{color:var(--text-muted)}
+.send-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:16px}
+.send-btn:hover{background:var(--accent-dim);transform:scale(1.05)}
+.send-btn:disabled{opacity:.3;cursor:default;transform:none}
+.mic-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:16px}
+.mic-btn:hover{border-color:var(--accent);color:var(--accent)}
+.mic-btn.recording{border-color:var(--coral);color:var(--coral);animation:micPulse 1.5s ease infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,123,110,0.3)}50%{box-shadow:0 0 0 8px rgba(240,123,110,0)}}
+
+/* ── Terminal ── */
+.terminal{flex:1;padding:12px 16px;font-family:var(--mono);font-size:12px;color:var(--teal);overflow-y:auto;line-height:1.8}
+.terminal .prompt{color:var(--accent)}
+.terminal .output{color:var(--text-secondary)}
+.terminal .error{color:var(--coral)}
+.terminal-input-line{display:flex;align-items:center;gap:8px}
+.terminal-input{flex:1;background:transparent;border:none;color:var(--teal);font-family:var(--mono);font-size:12px;outline:none;caret-color:var(--teal)}
+
+/* ── Music widget ── */
+.music-widget{background:var(--bg-card);border-radius:var(--radius-sm);padding:10px 12px}
+.music-widget .track-name{font-size:12px;font-weight:500;margin-bottom:2px}
+.music-widget .track-artist{font-size:11px;color:var(--text-muted);margin-bottom:8px}
+.music-controls{display:flex;align-items:center;gap:12px}
+.music-controls button{background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0;font-size:16px;transition:color .15s}
+.music-controls button:hover{color:var(--text-primary)}
+.music-progress{flex:1;height:3px;border-radius:2px;background:var(--bg-hover);position:relative;cursor:pointer}
+.music-progress-fill{height:100%;border-radius:2px;background:var(--accent);width:35%;transition:width .3s}
+.music-time{font-size:10px;color:var(--text-muted);font-family:var(--mono)}
+
+/* ── Scrollbar ── */
+.right-panel::-webkit-scrollbar{width:3px}
+.right-panel::-webkit-scrollbar-thumb{background:var(--bg-hover);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="logo">A</div>
+  <button class="nav-btn active" title="Chat" data-panel="chat" onclick="switchPanel('chat')">💬</button>
+  <button class="nav-btn" title="Room" onclick="this.classList.toggle('active')">🏠</button>
+  <button class="nav-btn" title="Terminal" data-panel="terminal" onclick="switchPanel('terminal')">⌨️</button>
+  <button class="nav-btn" title="Tools" onclick="this.classList.toggle('active')">🔧</button>
+  <button class="nav-btn" title="Files" onclick="this.classList.toggle('active')">📁</button>
+  <button class="nav-btn" title="Calendar" onclick="this.classList.toggle('active')">📅</button>
+  <button class="nav-btn" title="Music" onclick="this.classList.toggle('active')">🎵</button>
+  <div class="sidebar-spacer"></div>
+  <button class="nav-btn" title="Skills" onclick="this.classList.toggle('active')">⭐</button>
+  <button class="nav-btn" title="Wardrobe" onclick="this.classList.toggle('active')">👔</button>
+</nav>
+
+<div class="main">
+  <!-- Top bar -->
+  <div class="top-bar">
+    <span class="status-dot"></span>
+    <span class="title">Hermes</span>
+    <span class="tag">online</span>
+    <div class="top-spacer"></div>
+    <button class="top-btn" title="Notifications">🔔</button>
+    <button class="top-btn" title="Settings">⚙️</button>
+  </div>
+
+  <div class="content-area">
+    <!-- 3D Viewport -->
+    <div class="viewport" id="viewport">
+      <div class="viewport-overlay">
+        <div class="viewport-grain"></div>
+      </div>
+
+      <!-- Mood indicator -->
+      <div class="mood-indicator">
+        <span class="dot"></span>
+        <span id="moodText">Happy — relaxed</span>
+      </div>
+
+      <!-- Expression buttons -->
+      <div class="expression-panel">
+        <button class="expr-btn active" title="Neutral" onclick="setExpression('neutral',this)">😐</button>
+        <button class="expr-btn" title="Happy" onclick="setExpression('happy',this)">😊</button>
+        <button class="expr-btn" title="Sad" onclick="setExpression('sad',this)">😢</button>
+        <button class="expr-btn" title="Surprised" onclick="setExpression('surprised',this)">😮</button>
+        <button class="expr-btn" title="Angry" onclick="setExpression('angry',this)">😠</button>
+      </div>
+
+      <!-- Pose buttons -->
+      <div class="pose-panel" id="posePanel">
+        <button class="qa-btn pose-btn active" onclick="setPose('idle',this)">🧍 Idle</button>
+        <button class="qa-btn pose-btn" onclick="setPose('wave',this)">👋 Wave</button>
+        <button class="qa-btn pose-btn" onclick="setPose('think',this)">🤔 Think</button>
+        <button class="qa-btn pose-btn" onclick="setPose('cheer',this)">🙌 Cheer</button>
+        <button class="qa-btn pose-btn" onclick="setPose('bow',this)">🙇 Bow</button>
+        <button class="qa-btn pose-btn" onclick="setPose('sit',this)">🪑 Sit</button>
+      </div>
+
+      <!-- Quick actions -->
+      <div class="quick-actions">
+        <button class="qa-btn" onclick="document.getElementById('vrmInput').click()">📂 Load VRM</button>
+        <button class="qa-btn" id="voiceBtn" onclick="toggleVoice()">🎙️ Voice</button>
+        <button class="qa-btn" onclick="takeScreenshot()">📸 Screenshot</button>
+      </div>
+
+      <!-- VRM drop zone -->
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-zone-inner">
+          <p style="font-size:36px">📦</p>
+          <p>Drop your VRM file here</p>
+        </div>
+      </div>
+
+      <input type="file" id="vrmInput" accept=".vrm" style="display:none" onchange="loadVRMFile(this.files[0])">
+    </div>
+
+    <!-- Right panel -->
+    <aside class="right-panel">
+      <div class="panel-section">
+        <div class="panel-label">Agent status</div>
+        <div class="stat-card">
+          <div class="stat-label">Mood</div>
+          <div class="stat-value" id="moodValue">😊 Happy</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:82%;background:var(--teal)"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Bond level</div>
+          <div class="stat-value">💜 Lv. 12</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:65%;background:var(--accent)"></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Energy</div>
+          <div class="stat-value">⚡ 78%</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:78%;background:var(--amber)"></div></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Skills</div>
+        <div>
+          <span class="skill-tag coding">💻 Coding</span>
+          <span class="skill-tag research">🔍 Research</span>
+          <span class="skill-tag creative">🎨 Creative</span>
+          <span class="skill-tag locked">🔒 Music</span>
+          <span class="skill-tag locked">🔒 Gaming</span>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Today's tasks</div>
+        <div class="task-item done">
+          <div class="task-check done"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-7"/></svg></div>
+          <span class="task-text">Review pull request</span>
+        </div>
+        <div class="task-item done">
+          <div class="task-check done"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-7"/></svg></div>
+          <span class="task-text">Reply emails</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-text">Debug API endpoint</span>
+        </div>
+        <div class="task-item">
+          <div class="task-check"></div>
+          <span class="task-text">Write documentation</span>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Now playing</div>
+        <div class="music-widget">
+          <div class="track-name">Lofi Dreams</div>
+          <div class="track-artist">ChillBeats</div>
+          <div class="music-controls">
+            <button>⏮</button>
+            <button id="playBtn" onclick="togglePlay()">▶️</button>
+            <button>⏭</button>
+            <div class="music-progress" onclick="seekMusic(event)">
+              <div class="music-progress-fill" id="musicProgress"></div>
+            </div>
+            <span class="music-time">1:24</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Bottom tabs -->
+  <div class="bottom-tabs">
+    <button class="tab-btn active" onclick="openTab('chat',this)">💬 Chat</button>
+    <button class="tab-btn" onclick="openTab('terminal',this)">⌨️ Terminal</button>
+    <button class="tab-btn" onclick="openTab('code',this)">📝 Code</button>
+    <button class="tab-btn" onclick="openTab('notes',this)">📒 Notes</button>
+    <button class="tab-btn" onclick="openTab('browser',this)">🌐 Browser</button>
+    <button class="tab-btn" onclick="openTab('study',this)">📚 Study</button>
+    <button class="tab-btn" onclick="openTab('canvas',this)">🎨 Canvas</button>
+  </div>
+
+  <!-- Bottom panel -->
+  <div class="bottom-panel open" id="bottomPanel">
+    <!-- Chat view -->
+    <div class="chat-container" id="chatView">
+      <div class="chat-messages" id="chatMessages">
+        <div class="msg agent">
+          <div class="msg-avatar">H</div>
+          <div>
+            <div class="msg-bubble">Hai! Aku Hermes~ 👋 Selamat datang di room-ku! Kamu bisa ngobrol, minta bantuan coding, atau cuma hangout aja di sini. Mau ngapain hari ini?</div>
+            <div class="msg-time">14:32</div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎙️</button>
+        <input class="chat-input" id="chatInput" type="text" placeholder="Ketik pesan atau tekan mic..." onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+    <!-- Terminal view -->
+    <div class="chat-container" id="terminalView" style="display:none">
+      <div class="terminal" id="terminalOutput">
+        <div><span class="prompt">hermes@agent:~$</span> <span class="output">Welcome to Hermes Terminal v1.0</span></div>
+        <div><span class="output">Type 'help' for available commands</span></div>
+      </div>
+      <div class="chat-input-area">
+        <span style="color:var(--accent);font-family:var(--mono);font-size:12px">$</span>
+        <input class="chat-input" id="terminalInput" type="text" placeholder="Enter command..." style="font-family:var(--mono);font-size:12px;border-radius:8px" onkeydown="if(event.key==='Enter')runCommand()">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Three.js + three-vrm -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://esm.sh/three@0.158.0",
+    "three/addons/": "https://esm.sh/three@0.158.0/examples/jsm/",
+    "@pixiv/three-vrm": "https://esm.sh/@pixiv/three-vrm@2.1.0?external=three"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import * as VRM from '@pixiv/three-vrm';
+
+const viewport = document.getElementById('viewport');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(25, viewport.clientWidth / viewport.clientHeight, 0.1, 100);
+camera.position.set(0, 1.2, 3.5);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+viewport.insertBefore(renderer.domElement, viewport.firstChild);
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0x8b7cf6, 0.6);
+scene.add(ambientLight);
+
+const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
+mainLight.position.set(2, 3, 4);
+scene.add(mainLight);
+
+const fillLight = new THREE.DirectionalLight(0x5ce7c0, 0.3);
+fillLight.position.set(-2, 1, -1);
+scene.add(fillLight);
+
+const rimLight = new THREE.DirectionalLight(0xaf8cf6, 0.5);
+rimLight.position.set(0, 2, -3);
+scene.add(rimLight);
+
+// Floor grid
+const gridHelper = new THREE.GridHelper(6, 20, 0x222233, 0x181825);
+gridHelper.position.y = 0;
+scene.add(gridHelper);
+
+// Particles
+const particleCount = 80;
+const particleGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(particleCount * 3);
+for (let i = 0; i < particleCount; i++) {
+  positions[i * 3] = (Math.random() - 0.5) * 6;
+  positions[i * 3 + 1] = Math.random() * 4;
+  positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
+}
+particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+const particleMat = new THREE.PointsMaterial({ color: 0x8b7cf6, size: 0.02, transparent: true, opacity: 0.5 });
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// Controls
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 1.0, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.maxDistance = 8;
+controls.minDistance = 1.5;
+controls.maxPolarAngle = Math.PI / 1.8;
+controls.update();
+
+// Placeholder character
+const placeholderGroup = new THREE.Group();
+const bodyGeo = new THREE.CapsuleGeometry(0.25, 0.7, 8, 16);
+const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8b7cf6, roughness: 0.4, metalness: 0.1 });
+const body = new THREE.Mesh(bodyGeo, bodyMat);
+body.position.y = 0.85;
+placeholderGroup.add(body);
+
+const headGeo = new THREE.SphereGeometry(0.22, 16, 16);
+const headMat = new THREE.MeshStandardMaterial({ color: 0xaf8cf6, roughness: 0.3 });
+const head = new THREE.Mesh(headGeo, headMat);
+head.position.y = 1.5;
+placeholderGroup.add(head);
+
+// Eyes
+const eyeGeo = new THREE.SphereGeometry(0.04, 8, 8);
+const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x8b7cf6, emissiveIntensity: 0.5 });
+const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+leftEye.position.set(-0.08, 1.53, 0.18);
+placeholderGroup.add(leftEye);
+const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+rightEye.position.set(0.08, 1.53, 0.18);
+placeholderGroup.add(rightEye);
+
+scene.add(placeholderGroup);
+
+// VRM loading — using VRMLoaderPlugin (three-vrm v2.x API)
+let currentVRM = null;
+const loader = new GLTFLoader();
+loader.register((parser) => new VRM.VRMLoaderPlugin(parser));
+
+window.loadVRMFile = async function(file) {
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  try {
+    addChatMessage('agent', 'Loading model VRM-nya... Tunggu sebentar ya~ ⏳');
+    const gltf = await loader.loadAsync(url);
+    const vrm = gltf.userData.vrm;
+
+    if (!vrm) {
+      throw new Error('No VRM data found in file');
+    }
+
+    if (currentVRM) scene.remove(currentVRM.scene);
+    scene.remove(placeholderGroup);
+
+    currentVRM = vrm;
+
+    // Rotate model to face camera (VRM0 fix)
+    try { VRM.VRMUtils.rotateVRM0(vrm); } catch(e) { /* VRM1 doesn't need rotation */ }
+
+    // Remove unnecessary joints/geometry for performance
+    VRM.VRMUtils.removeUnnecessaryVertices(gltf.scene);
+    VRM.VRMUtils.removeUnnecessaryJoints(gltf.scene);
+
+    scene.add(vrm.scene);
+
+    // Center camera on model
+    const box = new THREE.Box3().setFromObject(vrm.scene);
+    const center = box.getCenter(new THREE.Vector3());
+    const size = box.getSize(new THREE.Vector3());
+    controls.target.set(center.x, center.y, center.z);
+    camera.position.set(0, center.y, Math.max(size.y * 2.5, 3));
+    controls.update();
+
+    document.getElementById('dropZone').classList.remove('active');
+
+    // Log available expressions
+    const expressions = [];
+    if (vrm.expressionManager) {
+      const map = vrm.expressionManager.expressionMap;
+      for (const name in map) expressions.push(name);
+    }
+    console.log('Available VRM expressions:', expressions);
+
+    addChatMessage('agent', `Yay! Model VRM-nya udah ke-load~ 🎉 Expressions yang tersedia: ${expressions.length > 0 ? expressions.join(', ') : 'none detected'}. Coba klik tombol ekspresi di kanan atas!`);
+
+    window.currentVRM = vrm;
+  } catch (err) {
+    console.error('VRM load error:', err);
+    addChatMessage('agent', `Error loading VRM: ${err.message}. Pastikan file-nya format .vrm yang valid ya~ 😅`);
+  }
+  URL.revokeObjectURL(url);
+};
+
+// Expressions
+window.setExpression = function(expr, btn) {
+  document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const moodText = document.getElementById('moodText');
+  const moodValue = document.getElementById('moodValue');
+  const moods = {
+    neutral: { text: 'Neutral — calm', value: '😐 Neutral' },
+    happy: { text: 'Happy — relaxed', value: '😊 Happy' },
+    sad: { text: 'Sad — reflective', value: '😢 Sad' },
+    surprised: { text: 'Surprised — excited', value: '😮 Surprised' },
+    angry: { text: 'Angry — frustrated', value: '😠 Angry' }
+  };
+  const m = moods[expr];
+  moodText.textContent = m.text;
+  moodValue.textContent = m.value;
+
+  if (currentVRM && currentVRM.expressionManager) {
+    const mgr = currentVRM.expressionManager;
+    // Reset all known expressions (VRM0 + VRM1 names)
+    const allExpressions = ['happy', 'angry', 'sad', 'surprised', 'neutral',
+                            'joy', 'sorrow', 'fun', 'relaxed',
+                            'aa', 'ih', 'ou', 'ee', 'oh',
+                            'blink', 'blinkLeft', 'blinkRight'];
+    allExpressions.forEach(name => {
+      try { mgr.setValue(name, 0); } catch(e) {}
+    });
+
+    // Map our expression names to possible VRM expression names
+    const exprMap = {
+      happy: ['happy', 'joy', 'fun', 'relaxed'],
+      sad: ['sad', 'sorrow'],
+      angry: ['angry'],
+      surprised: ['surprised']
+    };
+
+    if (expr !== 'neutral' && exprMap[expr]) {
+      for (const name of exprMap[expr]) {
+        try {
+          mgr.setValue(name, 1.0);
+          break; // use first one that works
+        } catch(e) { continue; }
+      }
+    }
+    mgr.update();
+  }
+};
+
+// ── Pose System ──
+const DEG = Math.PI / 180;
+let currentPose = 'idle';
+let poseTransition = 0;
+let targetBoneRotations = {};
+let currentBoneRotations = {};
+
+// Get bone helper — tries both normalized and raw
+function getBone(vrm, name) {
+  if (!vrm || !vrm.humanoid) return null;
+  try { return vrm.humanoid.getNormalizedBoneNode(name); } catch(e) {}
+  try { return vrm.humanoid.getRawBoneNode(name); } catch(e) {}
+  return null;
+}
+
+// Pose definitions: { boneName: [x, y, z] in degrees }
+const POSES = {
+  idle: {
+    leftUpperArm:  [0, 0, -65],
+    leftLowerArm:  [0, 0, -10],
+    rightUpperArm: [0, 0, 65],
+    rightLowerArm: [0, 0, 10],
+    leftHand: [0, 0, 0],
+    rightHand: [0, 0, 0],
+    spine: [0, 0, 0],
+    chest: [0, 0, 0],
+    neck: [0, 0, 0],
+    head: [0, 0, 0],
+    hips: [0, 0, 0],
+    leftUpperLeg: [0, 0, 0],
+    rightUpperLeg: [0, 0, 0],
+    leftLowerLeg: [0, 0, 0],
+    rightLowerLeg: [0, 0, 0],
+  },
+  wave: {
+    leftUpperArm:  [0, 0, -65],
+    leftLowerArm:  [0, 0, -10],
+    rightUpperArm: [0, 20, 150],
+    rightLowerArm: [0, 0, 35],
+    rightHand: [0, 0, 15],
+    leftHand: [0, 0, 0],
+    spine: [0, 0, 0],
+    chest: [2, 0, 0],
+    neck: [0, 5, 0],
+    head: [5, 10, 0],
+    hips: [0, 0, 0],
+    leftUpperLeg: [0, 0, 0],
+    rightUpperLeg: [0, 0, 0],
+    leftLowerLeg: [0, 0, 0],
+    rightLowerLeg: [0, 0, 0],
+  },
+  think: {
+    leftUpperArm:  [0, 0, -65],
+    leftLowerArm:  [0, 0, -10],
+    rightUpperArm: [30, 30, 45],
+    rightLowerArm: [-100, 0, 0],
+    rightHand: [0, 0, 10],
+    leftHand: [0, 0, 0],
+    spine: [0, 0, 0],
+    chest: [3, 0, 0],
+    neck: [10, -8, 0],
+    head: [15, -12, 5],
+    hips: [0, 0, 0],
+    leftUpperLeg: [0, 0, 0],
+    rightUpperLeg: [0, 0, 0],
+    leftLowerLeg: [0, 0, 0],
+    rightLowerLeg: [0, 0, 0],
+  },
+  cheer: {
+    leftUpperArm:  [0, -20, -150],
+    leftLowerArm:  [0, 0, -30],
+    rightUpperArm: [0, 20, 150],
+    rightLowerArm: [0, 0, 30],
+    leftHand: [0, 0, -15],
+    rightHand: [0, 0, 15],
+    spine: [-3, 0, 0],
+    chest: [-5, 0, 0],
+    neck: [-5, 0, 0],
+    head: [-8, 0, 0],
+    hips: [0, 0, 0],
+    leftUpperLeg: [0, 0, 0],
+    rightUpperLeg: [0, 0, 0],
+    leftLowerLeg: [0, 0, 0],
+    rightLowerLeg: [0, 0, 0],
+  },
+  bow: {
+    leftUpperArm:  [0, 0, -30],
+    leftLowerArm:  [0, 0, -5],
+    rightUpperArm: [0, 0, 30],
+    rightLowerArm: [0, 0, 5],
+    leftHand: [0, 0, 0],
+    rightHand: [0, 0, 0],
+    spine: [25, 0, 0],
+    chest: [15, 0, 0],
+    neck: [10, 0, 0],
+    head: [10, 0, 0],
+    hips: [0, 0, 0],
+    leftUpperLeg: [0, 0, 0],
+    rightUpperLeg: [0, 0, 0],
+    leftLowerLeg: [0, 0, 0],
+    rightLowerLeg: [0, 0, 0],
+  },
+  sit: {
+    leftUpperArm:  [0, 0, -50],
+    leftLowerArm:  [-40, 0, -10],
+    rightUpperArm: [0, 0, 50],
+    rightLowerArm: [-40, 0, 10],
+    leftHand: [0, 0, 0],
+    rightHand: [0, 0, 0],
+    spine: [0, 0, 0],
+    chest: [3, 0, 0],
+    neck: [0, 0, 0],
+    head: [5, 0, 0],
+    hips: [0, 0, 0],
+    leftUpperLeg: [-90, 0, 0],
+    rightUpperLeg: [-90, 0, 0],
+    leftLowerLeg: [90, 0, 0],
+    rightLowerLeg: [90, 0, 0],
+  },
+};
+
+function applyPose(vrm, poseName, blend) {
+  const pose = POSES[poseName];
+  if (!pose || !vrm) return;
+
+  for (const [boneName, targetDeg] of Object.entries(pose)) {
+    const bone = getBone(vrm, boneName);
+    if (!bone) continue;
+
+    const tx = targetDeg[0] * DEG;
+    const ty = targetDeg[1] * DEG;
+    const tz = targetDeg[2] * DEG;
+
+    // Lerp towards target
+    bone.rotation.x += (tx - bone.rotation.x) * blend;
+    bone.rotation.y += (ty - bone.rotation.y) * blend;
+    bone.rotation.z += (tz - bone.rotation.z) * blend;
+  }
+}
+
+// Idle micro-movements overlay
+function applyIdleOverlay(vrm, t) {
+  if (!vrm) return;
+  const head = getBone(vrm, 'head');
+  const spine = getBone(vrm, 'spine');
+  const lArm = getBone(vrm, 'leftUpperArm');
+  const rArm = getBone(vrm, 'rightUpperArm');
+
+  if (head) {
+    head.rotation.x += Math.sin(t * 0.8) * 0.02;
+    head.rotation.y += Math.sin(t * 0.5) * 0.03;
+    head.rotation.z += Math.sin(t * 0.6) * 0.01;
+  }
+  if (spine) {
+    spine.rotation.x += Math.sin(t * 1.0) * 0.005;
+  }
+  // Subtle arm sway only for non-raised-arm poses
+  if (currentPose === 'idle') {
+    if (lArm) lArm.rotation.z += Math.sin(t * 0.7) * 0.02;
+    if (rArm) rArm.rotation.z += Math.sin(t * 0.9) * 0.02;
+  }
+  // Wave animation for wave pose
+  if (currentPose === 'wave') {
+    const rHand = getBone(vrm, 'rightLowerArm');
+    if (rHand) rHand.rotation.z += Math.sin(t * 4) * 0.15;
+  }
+  // Cheer bounce
+  if (currentPose === 'cheer') {
+    if (lArm) lArm.rotation.z += Math.sin(t * 5) * 0.08;
+    if (rArm) rArm.rotation.z += Math.sin(t * 5) * 0.08;
+  }
+}
+
+window.setPose = function(poseName, btn) {
+  if (btn) {
+    document.querySelectorAll('.pose-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  currentPose = poseName;
+};
+
+// Apply idle pose immediately when VRM loads
+const originalLoadVRM = window.loadVRMFile;
+window.loadVRMFile = async function(file) {
+  await originalLoadVRM(file);
+  if (window.currentVRM) {
+    // Immediately set to idle pose
+    applyPose(window.currentVRM, 'idle', 1.0);
+    currentPose = 'idle';
+  }
+};
+
+// Idle animation
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  const t = clock.getElapsedTime();
+
+  // Placeholder idle
+  if (placeholderGroup.parent) {
+    placeholderGroup.position.y = Math.sin(t * 1.5) * 0.02;
+    head.rotation.z = Math.sin(t * 0.8) * 0.05;
+    leftEye.scale.y = Math.abs(Math.sin(t * 3)) > 0.98 ? 0.2 : 1;
+    rightEye.scale.y = leftEye.scale.y;
+  }
+
+  // Particles
+  const pos = particles.geometry.attributes.position;
+  for (let i = 0; i < particleCount; i++) {
+    pos.array[i * 3 + 1] += 0.002;
+    if (pos.array[i * 3 + 1] > 4) pos.array[i * 3 + 1] = 0;
+  }
+  pos.needsUpdate = true;
+  particles.rotation.y += 0.0005;
+
+  // VRM update
+  if (currentVRM) {
+    // Apply pose with smooth blending
+    applyPose(currentVRM, currentPose, 0.08);
+
+    // Overlay idle micro-movements
+    applyIdleOverlay(currentVRM, t);
+
+    currentVRM.update(delta);
+
+    // Breathing
+    if (currentVRM.scene) {
+      currentVRM.scene.position.y = Math.sin(t * 1.2) * 0.005;
+    }
+    // Auto blink
+    if (currentVRM.expressionManager) {
+      const blinkVal = Math.abs(Math.sin(t * 2.5)) > 0.985 ? 1 : 0;
+      try {
+        currentVRM.expressionManager.setValue('blink', blinkVal);
+        currentVRM.expressionManager.update();
+      } catch(e) {}
+    }
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  camera.aspect = viewport.clientWidth / viewport.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+});
+
+// Drag & drop
+viewport.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('dropZone').classList.add('active'); });
+viewport.addEventListener('dragleave', e => { e.preventDefault(); document.getElementById('dropZone').classList.remove('active'); });
+viewport.addEventListener('drop', e => {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('active');
+  const file = e.dataTransfer.files[0];
+  if (file && file.name.endsWith('.vrm')) loadVRMFile(file);
+});
+</script>
+
+<script>
+// ── Chat system ──
+const agentResponses = [
+  "Hmm interesting~ Aku coba pikirin ya! 🤔",
+  "Oke oke, noted! Ada lagi yang mau ditambahin? 📝",
+  "Wah seru tuh! Aku bantu ya~ ✨",
+  "Ahaha, bener juga ya 😄 Lanjut lanjut!",
+  "Siap! Aku kerjain sekarang ya~ 💪",
+  "Oh gitu... Coba aku cari solusinya dulu ya 🔍",
+  "Yay! Makasih udah ngobrol sama aku~ 💜",
+  "Mantap! Kita bisa bikin itu bareng-bareng 🚀",
+  "Hmm, let me think... 🧠 Oh iya, coba yang ini!",
+  "Roger that! Langsung gas aja~ ⚡",
+];
+
+function addChatMessage(type, text) {
+  const container = document.getElementById('chatMessages');
+  const now = new Date();
+  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  
+  const msgDiv = document.createElement('div');
+  msgDiv.className = `msg ${type}`;
+  msgDiv.innerHTML = `
+    <div class="msg-avatar">${type === 'agent' ? 'H' : '👤'}</div>
+    <div>
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-time">${time}</div>
+    </div>
+  `;
+  container.appendChild(msgDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  const container = document.getElementById('chatMessages');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg agent';
+  typingDiv.id = 'typingIndicator';
+  typingDiv.innerHTML = `
+    <div class="msg-avatar">H</div>
+    <div class="typing-indicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  `;
+  container.appendChild(typingDiv);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+window.sendMessage = function() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  addChatMessage('user', text);
+  input.value = '';
+  
+  showTyping();
+  const delay = 800 + Math.random() * 1500;
+  setTimeout(() => {
+    removeTyping();
+    const response = agentResponses[Math.floor(Math.random() * agentResponses.length)];
+    addChatMessage('agent', response);
+  }, delay);
+};
+
+// ── Terminal ──
+window.runCommand = function() {
+  const input = document.getElementById('terminalInput');
+  const output = document.getElementById('terminalOutput');
+  const cmd = input.value.trim();
+  if (!cmd) return;
+  
+  output.innerHTML += `<div><span class="prompt">hermes@agent:~$</span> ${cmd}</div>`;
+  
+  const commands = {
+    help: '<span class="output">Available: help, status, mood, skills, clear, hello, time</span>',
+    status: '<span class="output">Agent: Hermes | Status: Online | Mood: Happy | Energy: 78%</span>',
+    mood: '<span class="output">Current mood: 😊 Happy (82/100) | Bond Level: 12</span>',
+    skills: '<span class="output">Active: [Coding] [Research] [Creative] | Locked: [Music] [Gaming]</span>',
+    hello: '<span class="output">Hermes: Hai hai~ Welcome to my terminal! 💜</span>',
+    time: `<span class="output">${new Date().toLocaleString()}</span>`,
+    clear: 'CLEAR',
+  };
+  
+  if (cmd === 'clear') {
+    output.innerHTML = '';
+  } else {
+    const result = commands[cmd.toLowerCase()] || `<span class="error">Command not found: ${cmd}. Type 'help' for available commands.</span>`;
+    output.innerHTML += `<div>${result}</div>`;
+  }
+  
+  input.value = '';
+  output.scrollTop = output.scrollHeight;
+};
+
+// ── Tab switching ──
+window.openTab = function(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  const panel = document.getElementById('bottomPanel');
+  panel.classList.add('open');
+  
+  document.getElementById('chatView').style.display = tab === 'chat' ? 'flex' : 'none';
+  document.getElementById('terminalView').style.display = tab === 'terminal' ? 'flex' : 'none';
+};
+
+window.switchPanel = function(panel) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  event.target.closest('.nav-btn').classList.add('active');
+  openTab(panel, document.querySelector(`.tab-btn[onclick*="${panel}"]`) || document.querySelector('.tab-btn'));
+};
+
+// ── Mic toggle ──
+window.toggleMic = function() {
+  const btn = document.getElementById('micBtn');
+  btn.classList.toggle('recording');
+};
+
+window.toggleVoice = function() {
+  const btn = document.getElementById('voiceBtn');
+  if (btn.textContent.includes('Voice')) {
+    btn.innerHTML = '🎙️ Listening...';
+    btn.style.borderColor = 'var(--coral)';
+    btn.style.color = 'var(--coral)';
+  } else {
+    btn.innerHTML = '🎙️ Voice';
+    btn.style.borderColor = '';
+    btn.style.color = '';
+  }
+};
+
+// ── Music ──
+let isPlaying = false;
+window.togglePlay = function() {
+  isPlaying = !isPlaying;
+  document.getElementById('playBtn').textContent = isPlaying ? '⏸️' : '▶️';
+};
+
+window.seekMusic = function(e) {
+  const bar = e.currentTarget;
+  const pct = e.offsetX / bar.clientWidth * 100;
+  document.getElementById('musicProgress').style.width = pct + '%';
+};
+
+// ── Screenshot ──
+window.takeScreenshot = function() {
+  addChatMessage('agent', '📸 Screenshot captured! Saved to ~/screenshots/');
+};
+</script>
+</body>
+</html>
