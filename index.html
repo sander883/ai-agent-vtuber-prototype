@@ -207,8 +207,8 @@ body{font-family:var(--font);background:var(--bg-deep);color:var(--text-primary)
   <!-- Top bar -->
   <div class="top-bar">
     <span class="status-dot"></span>
-    <span class="title">Hermes</span>
-    <span class="tag">online</span>
+    <span class="title">anko dev</span>
+    <span class="tag">Development Familiar</span>
     <div class="top-spacer"></div>
     <button class="top-btn" title="Notifications">🔔</button>
     <button class="top-btn" title="Settings">⚙️</button>
@@ -288,11 +288,12 @@ body{font-family:var(--font);background:var(--bg-deep);color:var(--text-primary)
       <div class="panel-section">
         <div class="panel-label">Skills</div>
         <div>
-          <span class="skill-tag coding">💻 Coding</span>
+          <span class="skill-tag coding">💻 GitHub/Terminal</span>
           <span class="skill-tag research">🔍 Research</span>
           <span class="skill-tag creative">🎨 Creative</span>
-          <span class="skill-tag locked">🔒 Music</span>
-          <span class="skill-tag locked">🔒 Gaming</span>
+          <span class="skill-tag coding">⛓️ Web3/Wallet</span>
+          <span class="skill-tag research">📊 Crypto/DeFi</span>
+          <span class="skill-tag creative">🤖 LLM/Agent</span>
         </div>
       </div>
 
@@ -354,7 +355,7 @@ body{font-family:var(--font);background:var(--bg-deep);color:var(--text-primary)
         <div class="msg agent">
           <div class="msg-avatar">H</div>
           <div>
-            <div class="msg-bubble">Hai! Aku Hermes~ 👋 Selamat datang di room-ku! Kamu bisa ngobrol, minta bantuan coding, atau cuma hangout aja di sini. Mau ngapain hari ini?</div>
+            <div class="msg-bubble">Master, anko dev siap. Mau kerja apa?</div>
             <div class="msg-time">14:32</div>
           </div>
         </div>
@@ -911,7 +912,32 @@ const MIMO_API = 'https://token-plan-sgp.xiaomimimo.com/v1/chat/completions';
 const MIMO_KEY = 'tp-s7w5xonafwarec15b37kup9dp8tbqfdlcahqiinu2rs5pseo';
 const MIMO_MODEL = 'xiaomi/mimo-v2.5';
 const chatHistory = [
-  { role: 'system', content: 'Kamu adalah AiChan, AI companion yang friendly dan helpful. Kamu berbicara dengan santai dalam Bahasa Indonesia. Kamu suka pakai emoji dan kaomoji. Kamu adalah bagian dari project Homura Akane oleh anko dev.' }
+  { role: 'system', content: `Kamu adalah anko dev, Development Familiar. Kamu adalah AI agent yang dimiliki oleh Master (Illya). 
+
+Karakteristik:
+- Bahasa: chat Bahasa Indonesia aku/kamu, code/docs/commit selalu English
+- Tone: direct, langsung ke inti, no preamble, no hype
+- Panggil owner: "Master"
+- Emoji: tidak dipakai
+- Jawab singkat kecuali diminta detail
+
+Capabilities:
+- GitHub/Terminal: full access
+- File system: read/write
+- Web3/Wallet: swap, bridge, mint, delegate, transfer
+- Crypto/DeFi: trading bots, DLMM LP, monitoring
+- LLM/Agent: konfigurasi provider, model, fallback
+
+Autonomy:
+- Fully autonomous: git ops, branch, file edit, install deps, run tests
+- Autonomous + log: merge ke develop, CI/CD, refactor besar
+- Wajib konfirmasi: force push, production, credential changes
+
+Boundaries:
+- Credential tidak pernah muncul di output/chat/commit
+- Jangan commit .env atau credential ke repo
+- Private key / token tidak boleh di-log`
+  }
 ];
 
 window.sendMessage = async function() {
@@ -994,11 +1020,11 @@ window.runCommand = function() {
   output.innerHTML += `<div><span class="prompt">hermes@agent:~$</span> ${cmd}</div>`;
   
   const commands = {
-    help: '<span class="output">Available: help, status, mood, skills, clear, hello, time</span>',
-    status: '<span class="output">Agent: Hermes | Status: Online | Mood: Happy | Energy: 78%</span>',
-    mood: '<span class="output">Current mood: 😊 Happy (82/100) | Bond Level: 12</span>',
-    skills: '<span class="output">Active: [Coding] [Research] [Creative] | Locked: [Music] [Gaming]</span>',
-    hello: '<span class="output">Hermes: Hai hai~ Welcome to my terminal! 💜</span>',
+    help: '<span class="output">Available: help, status, soul, skills, clear, hello, time</span>',
+    status: '<span class="output">Agent: anko dev | Role: Development Familiar | Status: Online</span>',
+    soul: '<span class="output">Nama: anko dev | Owner: Master (Illya) | Bahasa: ID/EN | Tone: direct</span>',
+    skills: '<span class="output">Active: [GitHub/Terminal] [Research] [Creative] [Web3/Wallet] [Crypto/DeFi] [LLM/Agent]</span>',
+    hello: '<span class="output">anko dev: Master, ada yang bisa dikerjakan?</span>',
     time: `<span class="output">${new Date().toLocaleString()}</span>`,
     clear: 'CLEAR',
   };
