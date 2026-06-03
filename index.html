@@ -538,6 +538,20 @@ window.loadVRMFile = async function(file) {
   URL.revokeObjectURL(url);
 };
 
+// Auto-load Homura Akane VRM on page load
+async function autoLoadVRM() {
+  try {
+    const res = await fetch('Homura Akane.vrm');
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const file = new File([blob], 'Homura Akane.vrm', { type: 'model/vrm' });
+    await loadVRMFile(file);
+  } catch (e) {
+    console.log('Auto-load VRM skipped:', e.message);
+  }
+}
+autoLoadVRM();
+
 // Expressions
 window.setExpression = function(expr, btn) {
   document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
