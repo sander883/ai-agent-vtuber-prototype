@@ -3,1097 +3,1605 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AiChan — AI Agent Companion</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Hermes — AI Agent Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg-deep:#0a0a0f;
-  --bg-panel:#111118;
-  --bg-card:#1a1a24;
-  --bg-hover:#22222e;
-  --bg-input:#14141c;
-  --accent:#8b7cf6;
-  --accent-dim:#6b5ce7;
-  --accent-glow:rgba(139,124,246,0.15);
-  --accent-soft:rgba(139,124,246,0.08);
-  --teal:#5ce7c0;
-  --teal-dim:rgba(92,231,192,0.12);
-  --coral:#f07b6e;
-  --coral-dim:rgba(240,123,110,0.12);
-  --pink:#e76baf;
-  --amber:#efb85a;
-  --text-primary:#e8e6f0;
-  --text-secondary:#8886a0;
-  --text-muted:#5c5a72;
-  --border:rgba(255,255,255,0.06);
-  --border-hover:rgba(255,255,255,0.12);
-  --radius:12px;
-  --radius-sm:8px;
-  --radius-xs:6px;
-  --font:'Outfit',sans-serif;
-  --mono:'JetBrains Mono',monospace;
+  --pink-50:#fff5f7;--pink-100:#ffe0ea;--pink-200:#ffc2d4;--pink-300:#ff9bb8;
+  --pink-400:#f472a3;--pink-500:#e84d8a;--pink-600:#d4337a;--pink-700:#b02060;
+  --cream:#fff9f5;--cream-dark:#f5ede6;
+  --text:#4a2040;--text-soft:#8a5070;--text-muted:#b88098;
+  --teal:#5ce7c0;--lavender:#c4b5fd;--gold:#f0d060;--coral:#f07b6e;
+  --glass:rgba(255,245,250,0.82);--glass-border:rgba(212,51,122,0.12);
+  --radius:16px;--radius-sm:12px;--radius-pill:50px;
+  --font:'Nunito',sans-serif;--mono:'JetBrains Mono',monospace;
+  --shadow-soft:0 4px 24px rgba(180,40,90,0.08);
+  --shadow-glow:0 0 20px rgba(228,77,138,0.15);
 }
 html,body{height:100%;overflow:hidden}
-body{font-family:var(--font);background:var(--bg-deep);color:var(--text-primary);display:flex}
+body{font-family:var(--font);background:#f5a0b8;color:var(--text);display:flex;align-items:center;justify-content:center}
 
-/* ── Sidebar ── */
-.sidebar{width:60px;background:var(--bg-panel);border-right:1px solid var(--border);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;z-index:10}
-.sidebar .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#af8cf6);display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-weight:700;font-size:14px;color:#fff}
-.nav-btn{width:40px;height:40px;border-radius:var(--radius-sm);border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;font-size:18px}
-.nav-btn:hover{background:var(--accent-soft);color:var(--text-secondary)}
-.nav-btn.active{background:var(--accent-glow);color:var(--accent)}
-.nav-btn.active::before{content:'';position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--accent);border-radius:0 3px 3px 0}
-.sidebar-spacer{flex:1}
+/* ── Background layer ── */
+.app-bg{position:fixed;inset:0;overflow:hidden}
+.bg-gradient{position:absolute;inset:0;background:linear-gradient(160deg,#f8b8cc 0%,#f5a0b8 30%,#f090a8 70%,#e880a0 100%)}
+.bg-rays{position:absolute;inset:0;opacity:.1;background:repeating-conic-gradient(from 0deg at 58% 95%,transparent 0deg,rgba(255,255,255,.6) 1.5deg,transparent 3deg)}
+.bg-frame{position:absolute;inset:14px;border:2px solid rgba(255,255,255,.25);border-radius:6px;pointer-events:none}
+.bg-frame-inner{position:absolute;inset:20px;border:1px solid rgba(255,255,255,.15);border-radius:4px;pointer-events:none}
 
-/* ── Main layout ── */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.top-bar{height:44px;background:var(--bg-panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0}
-.top-bar .title{font-size:13px;font-weight:500;color:var(--text-secondary)}
-.top-bar .status-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px rgba(92,231,192,0.5)}
-.top-bar .tag{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--accent-soft);color:var(--accent);font-weight:500}
-.top-spacer{flex:1}
-.top-btn{width:32px;height:32px;border-radius:var(--radius-xs);border:none;background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s}
-.top-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+/* Clouds */
+.cloud{position:absolute;display:flex;align-items:center;opacity:.65;animation:cloudFloat 20s ease-in-out infinite}
+.cloud-part{background:#fff;border-radius:50px;height:14px}
+@keyframes cloudFloat{0%,100%{transform:translateX(0) translateY(0)}50%{transform:translateX(15px) translateY(-5px)}}
+.cloud-1{top:8%;right:12%}.cloud-1 .cloud-part:nth-child(1){width:40px}.cloud-1 .cloud-part:nth-child(2){width:28px;margin-left:-8px;margin-top:10px}
+.cloud-2{top:15%;right:30%;animation-delay:-7s}.cloud-2 .cloud-part:nth-child(1){width:30px;height:10px}.cloud-2 .cloud-part:nth-child(2){width:20px;height:10px;margin-left:-5px;margin-top:8px}
+.cloud-3{bottom:18%;left:38%;animation-delay:-12s}.cloud-3 .cloud-part:nth-child(1){width:35px;height:12px}.cloud-3 .cloud-part:nth-child(2){width:22px;height:12px;margin-left:-6px;margin-top:9px}
+.cloud-4{top:55%;right:8%;animation-delay:-4s;opacity:.4}.cloud-4 .cloud-part:nth-child(1){width:26px;height:10px}.cloud-4 .cloud-part:nth-child(2){width:18px;height:10px;margin-left:-4px;margin-top:7px}
 
-.content-area{flex:1;display:flex;overflow:hidden}
+/* Floating confetti */
+.confetti{position:absolute;width:7px;height:7px;background:var(--gold);transform:rotate(45deg);animation:confettiFall linear infinite;opacity:.7;border-radius:1px}
+@keyframes confettiFall{0%{transform:rotate(45deg) translateY(0);opacity:.7}50%{opacity:.9}100%{transform:rotate(225deg) translateY(30px);opacity:.3}}
 
-/* ── Character viewport ── */
-.viewport{flex:1;position:relative;background:var(--bg-deep);overflow:hidden}
-.viewport canvas{width:100%!important;height:100%!important;display:block}
-.viewport-overlay{position:absolute;inset:0;pointer-events:none}
-.viewport-grain{position:absolute;inset:0;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")}
-.mood-indicator{position:absolute;top:16px;left:16px;pointer-events:auto;display:flex;align-items:center;gap:8px;background:rgba(17,17,24,0.8);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:20px;padding:6px 14px 6px 10px}
-.mood-indicator .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:pulse 2s ease-in-out infinite}
-.mood-indicator span{font-size:12px;color:var(--text-secondary);font-weight:500}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Floating sparkles */
+.sparkle{position:absolute;animation:sparkleAnim 3s ease-in-out infinite}
+.sparkle::before,.sparkle::after{content:'';position:absolute;background:#fff;border-radius:2px}
+.sparkle::before{width:2px;height:10px;left:4px;top:0}
+.sparkle::after{width:10px;height:2px;left:0;top:4px}
+@keyframes sparkleAnim{0%,100%{transform:scale(.5) rotate(0deg);opacity:.3}50%{transform:scale(1.2) rotate(45deg);opacity:1}}
 
-.expression-panel{position:absolute;top:16px;right:16px;pointer-events:auto;display:flex;flex-direction:column;gap:6px}
-.expr-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:rgba(17,17,24,0.7);backdrop-filter:blur(12px);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
-.expr-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(139,124,246,0.1)}
-.expr-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(139,124,246,0.15)}
+/* Hearts floating */
+.float-heart{position:absolute;font-size:14px;animation:heartFloat 6s ease-in-out infinite;opacity:.4}
+@keyframes heartFloat{0%{transform:translateY(0) scale(1);opacity:.4}50%{transform:translateY(-20px) scale(1.2);opacity:.7}100%{transform:translateY(0) scale(1);opacity:.4}}
 
-.pose-panel{position:absolute;bottom:56px;left:16px;pointer-events:auto;display:flex;flex-wrap:wrap;gap:6px;max-width:280px}
-.pose-btn{font-size:11px!important;padding:0 10px!important;height:30px!important}
-.pose-btn.active{border-color:var(--accent)!important;color:var(--accent)!important;background:rgba(139,124,246,0.1)!important}
+/* ── Main app container ── */
+.app{position:relative;width:100vw;height:100vh;display:flex;z-index:1}
 
-.quick-actions{position:absolute;bottom:16px;left:16px;pointer-events:auto;display:flex;gap:8px}
-.qa-btn{height:34px;border-radius:20px;border:1px solid var(--border);background:rgba(17,17,24,0.7);backdrop-filter:blur(12px);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:6px;padding:0 14px;font-size:12px;font-family:var(--font);font-weight:500;transition:all .2s}
-.qa-btn:hover{border-color:var(--accent);color:var(--accent)}
-.qa-btn svg{width:14px;height:14px}
+/* ── Left: UI Panel (the white card) ── */
+.ui-panel{
+  position:absolute;left:22px;top:22px;bottom:22px;width:38%;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border:2px solid var(--pink-400);border-radius:var(--radius);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.5);
+  animation:panelSlideIn .8s cubic-bezier(.16,1,.3,1) both;
+  z-index:5
+}
+@keyframes panelSlideIn{from{opacity:0;transform:translateX(-30px) rotate(-1deg)}to{opacity:1;transform:none}}
 
-.drop-zone{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,10,15,0.85);backdrop-filter:blur(8px);z-index:5}
-.drop-zone.active{display:flex}
-.drop-zone-inner{text-align:center;padding:40px;border:2px dashed var(--accent);border-radius:var(--radius);color:var(--accent)}
-.drop-zone-inner p{margin-top:8px;font-size:14px;color:var(--text-secondary)}
+/* Panel header */
+.panel-header{
+  padding:12px 16px;display:flex;align-items:center;gap:10px;
+  background:linear-gradient(135deg,var(--pink-500),var(--pink-400));
+  position:relative;overflow:hidden
+}
+.panel-header::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent,transparent 8px,rgba(255,255,255,.05) 8px,rgba(255,255,255,.05) 16px)
+}
+.avatar-ring{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,#fff,var(--pink-100));
+  padding:2px;animation:avatarPulse 3s ease-in-out infinite;
+  position:relative;z-index:1
+}
+.avatar-ring img,.avatar-inner{
+  width:100%;height:100%;border-radius:50%;
+  background:var(--pink-200);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:14px;color:var(--pink-600)
+}
+@keyframes avatarPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.4)}50%{box-shadow:0 0 0 6px rgba(255,255,255,0)}}
+.header-info{flex:1;position:relative;z-index:1}
+.header-name{font-size:14px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px}
+.header-status{font-size:11px;color:rgba(255,255,255,.8);display:flex;align-items:center;gap:4px}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:dotPulse 2s ease-in-out infinite}
+@keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 rgba(92,231,192,.5)}50%{box-shadow:0 0 0 4px rgba(92,231,192,0)}}
+.header-btn{width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;backdrop-filter:blur(4px);position:relative;z-index:1}
+.header-btn:hover{background:rgba(255,255,255,.3);transform:scale(1.1)}
 
-/* ── Right panel ── */
-.right-panel{width:240px;background:var(--bg-panel);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
-.panel-section{padding:16px;border-bottom:1px solid var(--border)}
-.panel-section:last-child{border-bottom:none}
-.panel-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px}
-.stat-card{background:var(--bg-card);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:6px}
-.stat-card:last-child{margin-bottom:0}
-.stat-card .stat-label{font-size:11px;color:var(--text-muted);margin-bottom:4px}
-.stat-card .stat-value{font-size:15px;font-weight:600;display:flex;align-items:center;gap:6px}
-.stat-bar{height:3px;border-radius:2px;background:var(--bg-hover);margin-top:6px;overflow:hidden}
-.stat-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+/* Tabs */
+.tab-bar{display:flex;gap:3px;padding:8px 10px;background:var(--pink-50);border-bottom:1px solid var(--glass-border)}
+.tab{
+  padding:5px 12px;border-radius:var(--radius-pill);border:none;
+  background:transparent;color:var(--text-muted);
+  font-family:var(--font);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all .25s cubic-bezier(.16,1,.3,1);
+  display:flex;align-items:center;gap:4px
+}
+.tab:hover{color:var(--pink-500);background:var(--pink-100)}
+.tab.active{
+  background:var(--pink-500);color:#fff;
+  box-shadow:0 2px 8px rgba(228,77,138,.25);
+  transform:scale(1.02)
+}
 
-.skill-tag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;margin:0 4px 4px 0}
-.skill-tag.coding{background:var(--accent-soft);color:var(--accent)}
-.skill-tag.research{background:var(--teal-dim);color:var(--teal)}
-.skill-tag.creative{background:var(--coral-dim);color:var(--coral)}
-.skill-tag.locked{background:var(--bg-card);color:var(--text-muted);border:1px dashed var(--border)}
+/* Chat */
+.chat-area{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.chat-area::-webkit-scrollbar{width:4px}
+.chat-area::-webkit-scrollbar-thumb{background:var(--pink-200);border-radius:4px}
 
-.task-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12px}
-.task-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--text-muted);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.task-check.done{border-color:var(--teal);background:var(--teal);color:var(--bg-deep)}
-.task-check.done svg{display:block}
-.task-item.done .task-text{text-decoration:line-through;color:var(--text-muted)}
-
-/* ── Bottom tabs ── */
-.bottom-tabs{height:38px;background:var(--bg-panel);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:2px;flex-shrink:0}
-.tab-btn{height:28px;padding:0 12px;border-radius:6px;border:none;background:transparent;color:var(--text-muted);font-family:var(--font);font-size:11px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap}
-.tab-btn:hover{color:var(--text-secondary);background:var(--bg-hover)}
-.tab-btn.active{color:var(--accent);background:var(--accent-soft)}
-.tab-btn svg{width:13px;height:13px}
-
-/* ── Bottom panel (terminal/chat) ── */
-.bottom-panel{height:0;background:var(--bg-panel);border-top:1px solid var(--border);transition:height .3s ease;overflow:hidden;flex-shrink:0;display:flex;flex-direction:column}
-.bottom-panel.open{height:260px}
-
-/* ── Chat ── */
-.chat-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
-.chat-messages::-webkit-scrollbar{width:4px}
-.chat-messages::-webkit-scrollbar-thumb{background:var(--bg-hover);border-radius:2px}
-
-.msg{display:flex;gap:10px;max-width:85%;animation:msgIn .3s ease}
+.msg{display:flex;gap:8px;max-width:88%;animation:msgBounce .4s cubic-bezier(.34,1.56,.64,1) both}
 .msg.agent{align-self:flex-start}
 .msg.user{align-self:flex-end;flex-direction:row-reverse}
-@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes msgBounce{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
 
-.msg-avatar{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
-.msg.agent .msg-avatar{background:linear-gradient(135deg,var(--accent),#af8cf6);color:#fff}
-.msg.user .msg-avatar{background:var(--bg-card);color:var(--text-secondary);border:1px solid var(--border)}
+.msg-avatar{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;overflow:hidden
+}
+.msg-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.msg.agent .msg-avatar{background:linear-gradient(135deg,var(--pink-400),var(--pink-500));color:#fff}
+.msg.user .msg-avatar{background:var(--cream-dark);color:var(--text-soft)}
 
-.msg-bubble{padding:10px 14px;font-size:13px;line-height:1.6;border-radius:16px}
-.msg.agent .msg-bubble{background:var(--bg-card);border-bottom-left-radius:4px;color:var(--text-primary)}
-.msg.user .msg-bubble{background:var(--accent-dim);border-bottom-right-radius:4px;color:#fff}
-
-.msg-time{font-size:10px;color:var(--text-muted);margin-top:4px;padding:0 4px}
+.msg-content{display:flex;flex-direction:column;gap:2px}
+.msg-bubble{
+  padding:10px 14px;font-size:12.5px;line-height:1.6;
+  border-radius:18px;position:relative;
+  transition:transform .15s
+}
+.msg-bubble:hover{transform:scale(1.01)}
+.msg.agent .msg-bubble{
+  background:var(--cream);border:1px solid var(--pink-100);
+  border-bottom-left-radius:4px;color:var(--text)
+}
+.msg.user .msg-bubble{
+  background:linear-gradient(135deg,var(--pink-500),var(--pink-400));
+  border-bottom-right-radius:4px;color:#fff
+}
+.msg-time{font-size:9px;color:var(--text-muted);padding:0 6px}
 .msg.user .msg-time{text-align:right}
 
-.typing-indicator{display:flex;gap:4px;padding:10px 14px;background:var(--bg-card);border-radius:16px;border-bottom-left-radius:4px;width:fit-content}
-.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);animation:typingBounce 1.2s ease-in-out infinite}
-.typing-dot:nth-child(2){animation-delay:.2s}
-.typing-dot:nth-child(3){animation-delay:.4s}
-@keyframes typingBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+/* Markdown in chat */
+.msg-bubble p{margin:0 0 4px 0}
+.msg-bubble p:last-child{margin-bottom:0}
+.msg-bubble code{background:rgba(212,51,122,0.08);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:11px}
+.msg-bubble pre{background:rgba(74,32,64,0.06);padding:8px 10px;border-radius:8px;overflow-x:auto;margin:4px 0}
+.msg-bubble pre code{background:none;padding:0}
+.msg-bubble ul,.msg-bubble ol{margin:4px 0;padding-left:18px}
+.msg-bubble strong{font-weight:700}
+.msg-bubble em{font-style:italic}
 
-.chat-input-area{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
-.chat-input{flex:1;background:var(--bg-input);border:1px solid var(--border);border-radius:20px;padding:8px 16px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;transition:border-color .2s}
-.chat-input:focus{border-color:var(--accent)}
-.chat-input::placeholder{color:var(--text-muted)}
-.send-btn{width:36px;height:36px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:16px}
-.send-btn:hover{background:var(--accent-dim);transform:scale(1.05)}
-.send-btn:disabled{opacity:.3;cursor:default;transform:none}
-.mic-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-size:16px}
-.mic-btn:hover{border-color:var(--accent);color:var(--accent)}
-.mic-btn.recording{border-color:var(--coral);color:var(--coral);animation:micPulse 1.5s ease infinite}
-@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(240,123,110,0.3)}50%{box-shadow:0 0 0 8px rgba(240,123,110,0)}}
+/* Typing */
+.typing{display:flex;align-items:center;gap:4px;padding:10px 16px;background:var(--cream);border:1px solid var(--pink-100);border-radius:18px;border-bottom-left-radius:4px;width:fit-content}
+.typing-dot{width:6px;height:6px;border-radius:50%;background:var(--pink-300);animation:typeBounce 1.4s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:.15s}
+.typing-dot:nth-child(3){animation-delay:.3s}
+@keyframes typeBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+
+/* Input */
+.input-area{
+  padding:10px 14px;border-top:1px solid var(--glass-border);
+  display:flex;gap:8px;align-items:center;
+  background:linear-gradient(180deg,transparent,rgba(255,200,220,.08))
+}
+.input-field{
+  flex:1;background:var(--cream);border:1.5px solid var(--pink-200);
+  border-radius:var(--radius-pill);padding:9px 16px;
+  color:var(--text);font-family:var(--font);font-size:12.5px;
+  outline:none;transition:all .3s cubic-bezier(.16,1,.3,1)
+}
+.input-field:focus{border-color:var(--pink-400);box-shadow:0 0 0 3px rgba(228,77,138,.12)}
+.input-field::placeholder{color:var(--text-muted)}
+.input-btn{
+  width:34px;height:34px;border-radius:50%;border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .2s cubic-bezier(.16,1,.3,1);font-size:14px
+}
+.send-btn{background:linear-gradient(135deg,var(--pink-500),var(--pink-400));color:#fff;box-shadow:0 2px 10px rgba(228,77,138,.3)}
+.send-btn:hover{transform:scale(1.12) rotate(5deg);box-shadow:0 4px 16px rgba(228,77,138,.4)}
+.mic-btn{background:var(--cream);border:1.5px solid var(--pink-200);color:var(--pink-400)}
+.mic-btn:hover{border-color:var(--pink-400);transform:scale(1.1)}
+.mic-btn.recording{background:var(--pink-500);color:#fff;border-color:var(--pink-500);animation:micPulse 1s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(228,77,138,.4)}50%{box-shadow:0 0 0 6px rgba(228,77,138,0)}}
+.attach-btn{background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;padding:4px;transition:all .2s}
+.attach-btn:hover{color:var(--pink-500);transform:rotate(15deg)}
+
+/* Voice toggle */
+.voice-btn{background:var(--cream);border:1.5px solid var(--pink-200);color:var(--pink-400)}
+.voice-btn:hover{border-color:var(--pink-400);transform:scale(1.1)}
+.voice-btn.active{background:var(--teal);border-color:var(--teal);color:#fff}
 
 /* ── Terminal ── */
-.terminal{flex:1;padding:12px 16px;font-family:var(--mono);font-size:12px;color:var(--teal);overflow-y:auto;line-height:1.8}
-.terminal .prompt{color:var(--accent)}
-.terminal .output{color:var(--text-secondary)}
-.terminal .error{color:var(--coral)}
-.terminal-input-line{display:flex;align-items:center;gap:8px}
-.terminal-input{flex:1;background:transparent;border:none;color:var(--teal);font-family:var(--mono);font-size:12px;outline:none;caret-color:var(--teal)}
+.terminal-area{display:none;flex:1;flex-direction:column;overflow:hidden}
+.terminal-output{flex:1;padding:14px;font-family:var(--mono);font-size:11.5px;color:var(--pink-600);overflow-y:auto;line-height:1.8;background:rgba(255,245,250,.5)}
+.terminal-output .prompt{color:var(--pink-500);font-weight:600}
+.terminal-output .out{color:var(--text-soft)}
+.terminal-output .err{color:var(--coral)}
 
-/* ── Music widget ── */
-.music-widget{background:var(--bg-card);border-radius:var(--radius-sm);padding:10px 12px}
-.music-widget .track-name{font-size:12px;font-weight:500;margin-bottom:2px}
-.music-widget .track-artist{font-size:11px;color:var(--text-muted);margin-bottom:8px}
-.music-controls{display:flex;align-items:center;gap:12px}
-.music-controls button{background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:0;font-size:16px;transition:color .15s}
-.music-controls button:hover{color:var(--text-primary)}
-.music-progress{flex:1;height:3px;border-radius:2px;background:var(--bg-hover);position:relative;cursor:pointer}
-.music-progress-fill{height:100%;border-radius:2px;background:var(--accent);width:35%;transition:width .3s}
-.music-time{font-size:10px;color:var(--text-muted);font-family:var(--mono)}
+/* ── Right side: Character viewport ── */
+.character-viewport{
+  position:absolute;inset:0;width:100%;
+  z-index:2;pointer-events:none
+}
+.character-viewport canvas{width:100%!important;height:100%!important;pointer-events:auto}
 
-/* ── Scrollbar ── */
-.right-panel::-webkit-scrollbar{width:3px}
-.right-panel::-webkit-scrollbar-thumb{background:var(--bg-hover);border-radius:2px}
+/* ── Floating status cards ── */
+.status-cards{
+  position:absolute;top:28px;right:24px;
+  display:flex;flex-direction:column;gap:8px;z-index:6;
+  animation:cardsSlideIn .6s cubic-bezier(.16,1,.3,1) .3s both
+}
+@keyframes cardsSlideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.status-card{
+  background:var(--glass);backdrop-filter:blur(16px);
+  border:1.5px solid var(--glass-border);border-radius:var(--radius-sm);
+  padding:8px 14px;min-width:120px;
+  box-shadow:var(--shadow-soft);
+  transition:all .2s;cursor:default
+}
+.status-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-glow)}
+.s-label{font-size:10px;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.s-value{font-size:13px;font-weight:700;color:var(--text);margin-top:2px;display:flex;align-items:center;gap:4px}
+.s-bar{height:3px;border-radius:3px;background:var(--pink-100);margin-top:5px;overflow:hidden}
+.s-bar-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(.16,1,.3,1)}
+
+/* ── Floating action buttons ── */
+.float-actions{
+  position:absolute;bottom:28px;left:50%;
+  display:flex;gap:6px;z-index:6;
+  animation:actionsSlideUp .6s cubic-bezier(.16,1,.3,1) .5s both
+}
+@keyframes actionsSlideUp{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
+.float-action{
+  height:32px;padding:0 14px;border-radius:var(--radius-pill);
+  border:1.5px solid var(--glass-border);
+  background:var(--glass);backdrop-filter:blur(16px);
+  color:var(--text-soft);font-family:var(--font);font-size:11px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;gap:5px;
+  box-shadow:var(--shadow-soft);transition:all .25s cubic-bezier(.16,1,.3,1)
+}
+.float-action:hover{
+  background:var(--pink-500);color:#fff;border-color:var(--pink-500);
+  transform:translateY(-3px) scale(1.05);box-shadow:0 6px 20px rgba(228,77,138,.3)
+}
+
+/* ── Expression buttons (right of character) ── */
+.expr-buttons{
+  position:absolute;bottom:28px;right:28px;
+  display:flex;gap:5px;z-index:6;
+  animation:actionsSlideUp .6s cubic-bezier(.16,1,.3,1) .7s both
+}
+.expr-btn{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--glass-border);
+  background:var(--glass);backdrop-filter:blur(16px);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .25s cubic-bezier(.16,1,.3,1);
+  box-shadow:var(--shadow-soft)
+}
+.expr-btn:hover{transform:scale(1.2) translateY(-4px);box-shadow:var(--shadow-glow)}
+.expr-btn.active{border-color:var(--pink-400);background:var(--pink-100)}
+
+/* Drop zone */
+.drop-zone{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(245,160,184,.85);backdrop-filter:blur(8px);z-index:20}
+.drop-zone.active{display:flex}
+.drop-zone-inner{text-align:center;padding:40px 60px;border:3px dashed #fff;border-radius:var(--radius);color:#fff;animation:dropPulse 1.5s ease-in-out infinite}
+@keyframes dropPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.drop-zone-inner p{font-size:16px;font-weight:700;margin-top:8px}
+.drop-zone-inner span{font-size:40px;display:block;margin-bottom:4px}
+
+/* ── Kawaii notification toast ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);
+  background:var(--glass);backdrop-filter:blur(16px);
+  border:1.5px solid var(--glass-border);border-radius:var(--radius-pill);
+  padding:10px 20px;font-size:13px;font-weight:600;color:var(--text);
+  box-shadow:var(--shadow-glow);z-index:100;
+  transition:transform .5s cubic-bezier(.16,1,.3,1);
+  display:flex;align-items:center;gap:8px
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── Drag handle (mobile only) ── */
+.drag-handle{
+  display:none;height:28px;background:var(--glass);
+  border-top:1.5px solid var(--glass-border);border-bottom:1.5px solid var(--glass-border);
+  cursor:row-resize;align-items:center;justify-content:center;
+  flex-shrink:0;touch-action:none;user-select:none;-webkit-user-select:none;
+  position:relative;z-index:10
+}
+.drag-handle::after{
+  content:'';width:36px;height:4px;border-radius:2px;
+  background:var(--pink-300);opacity:.5
+}
+.drag-handle.dragging::after{opacity:1;background:var(--pink-500);width:48px}
+
+/* ── Reactive particles ── */
+.reactive-particle{
+  position:fixed;pointer-events:none;z-index:50;
+  animation:particleRise 1.5s ease-out forwards;
+}
+@keyframes particleRise{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-80px) scale(0.3)}
+}
+
+/* ── State indicator ── */
+.state-indicator{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  z-index:15;pointer-events:none;opacity:0;transition:opacity .3s;
+  font-size:24px;font-weight:700;
+  background:var(--glass);backdrop-filter:blur(12px);
+  border:2px solid var(--glass-border);border-radius:var(--radius);
+  padding:8px 16px;
+}
+.state-indicator.visible{opacity:1}
+
+/* ── Top bar minimal ── */
+.topbar{position:absolute;top:18px;left:0;right:0;z-index:6;display:flex;align-items:center;justify-content:space-between;padding:0 22px;pointer-events:none}
+.topbar-status,.menu-wrap{pointer-events:auto}
+.topbar-status{display:flex;align-items:center;gap:8px;background:rgba(255,250,252,0.55);backdrop-filter:blur(10px);padding:6px 14px;border-radius:50px;font-size:13px;font-weight:600;color:var(--pink-700)}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:dotPulse 2s ease-in-out infinite}
+
+/* Menu button & dropdown */
+.menu-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--glass-border);background:rgba(255,250,252,0.55);backdrop-filter:blur(10px);cursor:pointer;font-size:18px;color:var(--pink-600);display:flex;align-items:center;justify-content:center;transition:all .2s}
+.menu-btn:hover{background:var(--pink-100);transform:scale(1.1)}
+.menu-dropdown{position:absolute;top:42px;right:0;background:var(--glass);backdrop-filter:blur(16px);border:1.5px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px;min-width:160px;box-shadow:var(--shadow-soft);z-index:20}
+.menu-dropdown button{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;border:none;background:none;font-family:var(--font);font-size:12px;color:var(--text);cursor:pointer;border-radius:8px;transition:background .15s}
+.menu-dropdown button:hover{background:var(--pink-100)}
+
+/* ── Chat dock (bottom center) ── */
+.chat-dock{
+  position:absolute;bottom:18px;left:50%;transform:translateX(-50%);
+  width:60%;max-width:640px;min-width:320px;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border:1.5px solid var(--glass-border);border-radius:20px;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.5);
+  z-index:5;transition:height .3s cubic-bezier(.16,1,.3,1);
+  height:160px;
+}
+.chat-dock.expanded{height:50vh;max-height:60vh}
+.chat-dock-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;cursor:pointer;flex-shrink:0;
+  border-bottom:1px solid var(--glass-border);
+  font-size:12px;font-weight:600;color:var(--text-soft)
+}
+.chat-dock-header:hover{background:rgba(255,200,220,.05)}
+.dock-chevron{font-size:10px;transition:transform .3s;color:var(--text-muted)}
+.chat-dock.expanded .dock-chevron{transform:rotate(180deg)}
+.chat-dock-messages{
+  flex:1;overflow-y:auto;padding:10px 14px;
+  display:flex;flex-direction:column;gap:8px;
+  scroll-behavior:smooth;min-height:0
+}
+.chat-dock-messages::-webkit-scrollbar{width:3px}
+.chat-dock-messages::-webkit-scrollbar-thumb{background:var(--pink-200);border-radius:3px}
+
+/* Chat dock input */
+.chat-dock-input{
+  display:flex;gap:6px;align-items:center;
+  padding:8px 12px;border-top:1px solid var(--glass-border);
+  flex-shrink:0
+}
+.dock-field{
+  flex:1;background:var(--cream);border:1.5px solid var(--pink-200);
+  border-radius:var(--radius-pill);padding:8px 14px;
+  color:var(--text);font-family:var(--font);font-size:12.5px;
+  outline:none;transition:all .3s cubic-bezier(.16,1,.3,1)
+}
+.dock-field:focus{border-color:var(--pink-400);box-shadow:0 0 0 3px rgba(228,77,138,.12)}
+.dock-field::placeholder{color:var(--text-muted)}
+.ico-btn{
+  width:30px;height:30px;border-radius:50%;border:none;
+  background:var(--cream);color:var(--pink-400);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .2s;flex-shrink:0
+}
+.ico-btn:hover{background:var(--pink-100);transform:scale(1.1)}
+.ico-btn.recording{background:var(--pink-500);color:#fff;animation:micPulse 1s ease-in-out infinite}
+.send-ico{
+  width:30px;height:30px;border-radius:50%;border:none;
+  background:linear-gradient(135deg,var(--pink-500),var(--pink-400));
+  color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:13px;transition:all .2s;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(228,77,138,.3)
+}
+.send-ico:hover{transform:scale(1.12);box-shadow:0 4px 14px rgba(228,77,138,.4)}
+
+/* ── Terminal overlay ── */
+.terminal-overlay{
+  position:fixed;inset:0;z-index:50;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(74,32,64,0.3);backdrop-filter:blur(4px)
+}
+.terminal-box{
+  width:90%;max-width:700px;height:60vh;
+  background:var(--glass);backdrop-filter:blur(20px);
+  border:1.5px solid var(--glass-border);border-radius:var(--radius);
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:var(--shadow-glow)
+}
+.terminal-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid var(--glass-border);
+  font-size:13px;font-weight:600;color:var(--text)
+}
+.terminal-input{
+  display:flex;gap:8px;align-items:center;
+  padding:8px 14px;border-top:1px solid var(--glass-border)
+}
+
+/* ── Responsive ── */
+@media(max-width:768px){
+  .chat-dock{width:calc(100% - 24px);min-width:auto;height:140px}
+  .chat-dock.expanded{height:45vh}
+  .topbar{padding:0 12px}
+  .character-viewport{order:1}
+  .drag-handle{order:2}
+  .chat-dock{order:3;position:relative;bottom:auto;left:auto;transform:none;width:100%;border-radius:0;border-left:none;border-right:none;border-bottom:none}
+  .topbar{order:4}
+}
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
-<nav class="sidebar">
-  <div class="logo">A</div>
-  <button class="nav-btn active" title="Chat" data-panel="chat" onclick="switchPanel('chat')">💬</button>
-  <button class="nav-btn" title="Room" onclick="this.classList.toggle('active')">🏠</button>
-  <button class="nav-btn" title="Terminal" data-panel="terminal" onclick="switchPanel('terminal')">⌨️</button>
-  <button class="nav-btn" title="Tools" onclick="this.classList.toggle('active')">🔧</button>
-  <button class="nav-btn" title="Files" onclick="this.classList.toggle('active')">📁</button>
-  <button class="nav-btn" title="Calendar" onclick="this.classList.toggle('active')">📅</button>
-  <button class="nav-btn" title="Music" onclick="this.classList.toggle('active')">🎵</button>
-  <div class="sidebar-spacer"></div>
-  <button class="nav-btn" title="Skills" onclick="this.classList.toggle('active')">⭐</button>
-  <button class="nav-btn" title="Wardrobe" onclick="this.classList.toggle('active')">👔</button>
-</nav>
+<!-- ═══ ANIMATED BACKGROUND ═══ -->
+<div class="app-bg">
+  <div class="bg-gradient"></div>
+  <div class="bg-rays"></div>
+  <div class="bg-frame"></div>
+  <div class="bg-frame-inner"></div>
+  <div class="cloud cloud-1"><div class="cloud-part"></div><div class="cloud-part"></div></div>
+  <div class="cloud cloud-2"><div class="cloud-part"></div><div class="cloud-part"></div></div>
+  <div class="cloud cloud-3"><div class="cloud-part"></div><div class="cloud-part"></div></div>
+  <div class="cloud cloud-4"><div class="cloud-part"></div><div class="cloud-part"></div></div>
+</div>
 
-<div class="main">
-  <!-- Top bar -->
-  <div class="top-bar">
-    <span class="status-dot"></span>
-    <span class="title">anko dev</span>
-    <span class="tag">Development Familiar</span>
-    <div class="top-spacer"></div>
-    <button class="top-btn" title="Notifications">🔔</button>
-    <button class="top-btn" title="Settings">⚙️</button>
-  </div>
+<!-- Dynamic sparkles & confetti (injected by JS) -->
+<div id="particles"></div>
 
-  <div class="content-area">
-    <!-- 3D Viewport -->
-    <div class="viewport" id="viewport">
-      <div class="viewport-overlay">
-        <div class="viewport-grain"></div>
-      </div>
+<!-- ═══ MAIN APP ═══ -->
+<div class="app">
 
-      <!-- Mood indicator -->
-      <div class="mood-indicator">
-        <span class="dot"></span>
-        <span id="moodText">Happy — relaxed</span>
-      </div>
-
-      <!-- Expression buttons -->
-      <div class="expression-panel">
-        <button class="expr-btn active" title="Neutral" onclick="setExpression('neutral',this)">😐</button>
-        <button class="expr-btn" title="Happy" onclick="setExpression('happy',this)">😊</button>
-        <button class="expr-btn" title="Sad" onclick="setExpression('sad',this)">😢</button>
-        <button class="expr-btn" title="Surprised" onclick="setExpression('surprised',this)">😮</button>
-        <button class="expr-btn" title="Angry" onclick="setExpression('angry',this)">😠</button>
-      </div>
-
-      <!-- Pose buttons -->
-      <div class="pose-panel" id="posePanel">
-        <button class="qa-btn pose-btn active" onclick="setPose('idle',this)">🧍 Idle</button>
-        <button class="qa-btn pose-btn" onclick="setPose('wave',this)">👋 Wave</button>
-        <button class="qa-btn pose-btn" onclick="setPose('think',this)">🤔 Think</button>
-        <button class="qa-btn pose-btn" onclick="setPose('cheer',this)">🙌 Cheer</button>
-        <button class="qa-btn pose-btn" onclick="setPose('bow',this)">🙇 Bow</button>
-        <button class="qa-btn pose-btn" onclick="setPose('sit',this)">🪑 Sit</button>
-      </div>
-
-      <!-- Quick actions -->
-      <div class="quick-actions">
-        <button class="qa-btn" onclick="document.getElementById('vrmInput').click()">📂 Load VRM</button>
-        <button class="qa-btn" id="voiceBtn" onclick="toggleVoice()">🎙️ Voice</button>
-        <button class="qa-btn" onclick="takeScreenshot()">📸 Screenshot</button>
-      </div>
-
-      <!-- VRM drop zone -->
-      <div class="drop-zone" id="dropZone">
-        <div class="drop-zone-inner">
-          <p style="font-size:36px">📦</p>
-          <p>Drop your VRM file here</p>
-        </div>
-      </div>
-
-      <input type="file" id="vrmInput" accept=".vrm" style="display:none" onchange="loadVRMFile(this.files[0])">
+  <!-- Chat dock (bottom center) -->
+  <div class="chat-dock" id="chatDock">
+    <div class="chat-dock-header" onclick="toggleChatExpand()">
+      <span class="dock-title">💬 Chat</span>
+      <span class="dock-chevron" id="dockChevron">▲</span>
     </div>
-
-    <!-- Right panel -->
-    <aside class="right-panel">
-      <div class="panel-section">
-        <div class="panel-label">Agent status</div>
-        <div class="stat-card">
-          <div class="stat-label">Mood</div>
-          <div class="stat-value" id="moodValue">😊 Happy</div>
-          <div class="stat-bar"><div class="stat-bar-fill" style="width:82%;background:var(--teal)"></div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Bond level</div>
-          <div class="stat-value">💜 Lv. 12</div>
-          <div class="stat-bar"><div class="stat-bar-fill" style="width:65%;background:var(--accent)"></div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Energy</div>
-          <div class="stat-value">⚡ 78%</div>
-          <div class="stat-bar"><div class="stat-bar-fill" style="width:78%;background:var(--amber)"></div></div>
+    <div class="chat-dock-messages" id="chatArea">
+      <div class="msg agent" style="animation-delay:.1s">
+        <div class="msg-avatar"><img src="assets/homura-avatar.jpg" alt="Homura"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">Haiii~ aku Hermes! ✨ Selamat datang di room-ku! Kamu bisa ngobrol, minta bantuan coding, atau cuma hangout aja~</div>
+          <div class="msg-time">14:32</div>
         </div>
       </div>
-
-      <div class="panel-section">
-        <div class="panel-label">Skills</div>
-        <div>
-          <span class="skill-tag coding">💻 GitHub/Terminal</span>
-          <span class="skill-tag research">🔍 Research</span>
-          <span class="skill-tag creative">🎨 Creative</span>
-          <span class="skill-tag coding">⛓️ Web3/Wallet</span>
-          <span class="skill-tag research">📊 Crypto/DeFi</span>
-          <span class="skill-tag creative">🤖 LLM/Agent</span>
+      <div class="msg agent" style="animation-delay:.3s">
+        <div class="msg-avatar"><img src="assets/homura-avatar.jpg" alt="Homura"></div>
+        <div class="msg-content">
+          <div class="msg-bubble">Coba drop file VRM kamu ke sini ya! Biar aku bisa muncul dalam bentuk 3D~ 💜</div>
+          <div class="msg-time">14:32</div>
         </div>
-      </div>
-
-      <div class="panel-section">
-        <div class="panel-label">Today's tasks</div>
-        <div class="task-item done">
-          <div class="task-check done"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-7"/></svg></div>
-          <span class="task-text">Review pull request</span>
-        </div>
-        <div class="task-item done">
-          <div class="task-check done"><svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 8l4 4 6-7"/></svg></div>
-          <span class="task-text">Reply emails</span>
-        </div>
-        <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-text">Debug API endpoint</span>
-        </div>
-        <div class="task-item">
-          <div class="task-check"></div>
-          <span class="task-text">Write documentation</span>
-        </div>
-      </div>
-
-      <div class="panel-section">
-        <div class="panel-label">Now playing</div>
-        <div class="music-widget">
-          <div class="track-name">Lofi Dreams</div>
-          <div class="track-artist">ChillBeats</div>
-          <div class="music-controls">
-            <button>⏮</button>
-            <button id="playBtn" onclick="togglePlay()">▶️</button>
-            <button>⏭</button>
-            <div class="music-progress" onclick="seekMusic(event)">
-              <div class="music-progress-fill" id="musicProgress"></div>
-            </div>
-            <span class="music-time">1:24</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Bottom tabs -->
-  <div class="bottom-tabs">
-    <button class="tab-btn active" onclick="openTab('chat',this)">💬 Chat</button>
-    <button class="tab-btn" onclick="openTab('terminal',this)">⌨️ Terminal</button>
-    <button class="tab-btn" onclick="openTab('code',this)">📝 Code</button>
-    <button class="tab-btn" onclick="openTab('notes',this)">📒 Notes</button>
-    <button class="tab-btn" onclick="openTab('browser',this)">🌐 Browser</button>
-    <button class="tab-btn" onclick="openTab('study',this)">📚 Study</button>
-    <button class="tab-btn" onclick="openTab('canvas',this)">🎨 Canvas</button>
-  </div>
-
-  <!-- Bottom panel -->
-  <div class="bottom-panel open" id="bottomPanel">
-    <!-- Chat view -->
-    <div class="chat-container" id="chatView">
-      <div class="chat-messages" id="chatMessages">
-        <div class="msg agent">
-          <div class="msg-avatar">H</div>
-          <div>
-            <div class="msg-bubble">Master, anko dev siap. Mau kerja apa?</div>
-            <div class="msg-time">14:32</div>
-          </div>
-        </div>
-      </div>
-      <div class="chat-input-area">
-        <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎙️</button>
-        <input class="chat-input" id="chatInput" type="text" placeholder="Ketik pesan atau tekan mic..." onkeydown="if(event.key==='Enter')sendMessage()">
-        <button class="send-btn" onclick="sendMessage()">➤</button>
       </div>
     </div>
 
-    <!-- Terminal view -->
-    <div class="chat-container" id="terminalView" style="display:none">
-      <div class="terminal" id="terminalOutput">
-        <div><span class="prompt">hermes@agent:~$</span> <span class="output">Welcome to Hermes Terminal v1.0</span></div>
-        <div><span class="output">Type 'help' for available commands</span></div>
+    <!-- Chat input -->
+    <div class="chat-dock-input" id="chatInputArea">
+      <button class="ico-btn" onclick="document.getElementById('vrmInput').click()">📎</button>
+      <input class="dock-field" id="chatInput" placeholder="Tulis pesan..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="ico-btn" id="micBtn" onclick="toggleMic(this)">🎙️</button>
+      <button class="ico-btn" id="voiceBtn" onclick="toggleVoice(this)" title="Toggle voice output">🔊</button>
+      <button class="send-ico" onclick="sendMsg()">➤</button>
+    </div>
+  </div>
+
+  <!-- Terminal view (hidden by default, toggled from menu) -->
+  <div class="terminal-overlay" id="terminalOverlay" style="display:none">
+    <div class="terminal-box">
+      <div class="terminal-header">
+        <span>⌨️ Terminal</span>
+        <button onclick="document.getElementById('terminalOverlay').style.display='none'" style="background:none;border:none;color:var(--text-soft);cursor:pointer;font-size:16px">✕</button>
       </div>
-      <div class="chat-input-area">
-        <span style="color:var(--accent);font-family:var(--mono);font-size:12px">$</span>
-        <input class="chat-input" id="terminalInput" type="text" placeholder="Enter command..." style="font-family:var(--mono);font-size:12px;border-radius:8px" onkeydown="if(event.key==='Enter')runCommand()">
+      <div class="terminal-output" id="termOut">
+        <div><span class="prompt">hermes@agent ~$</span> <span class="out">Welcome to Hermes Terminal v1.0 ✨</span></div>
+      </div>
+      <div class="terminal-input">
+        <span style="color:var(--pink-500);font-family:var(--mono);font-size:12px;font-weight:700">$</span>
+        <input class="dock-field" id="termInput" placeholder="Enter command..." style="font-family:var(--mono);font-size:11.5px" onkeydown="if(event.key==='Enter')runCmd()">
       </div>
     </div>
+  </div>
+
+  <!-- RIGHT: 3D Character Viewport -->
+  <div class="character-viewport" id="viewport">
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-zone-inner">
+        <span>📦</span>
+        <p>Drop VRM file here~!</p>
+      </div>
+    </div>
+    <input type="file" id="vrmInput" accept=".vrm" style="display:none" onchange="loadVRMFile(this.files[0])">
+    <!-- State indicator (thinking dots, speaking wave) -->
+    <div class="state-indicator" id="stateIndicator"></div>
+  </div>
+
+  <!-- Drag handle for mobile resize -->
+  <div class="drag-handle" id="dragHandle"></div>
+
+  <!-- Top bar minimal -->
+  <div class="topbar">
+    <div class="topbar-status">
+      <span class="conn-dot"></span>
+      <span>Hermes</span>
+    </div>
+    <div class="menu-wrap">
+      <button class="menu-btn" onclick="toggleMenu()" aria-label="Menu">⋯</button>
+      <div class="menu-dropdown" id="menuDropdown" style="display:none">
+        <button onclick="document.getElementById('vrmInput').click();toggleMenu()">📂 Load VRM</button>
+        <button onclick="toggleVoice(this);toggleMenu()">🎙️ Voice</button>
+        <button onclick="showToast('📸 Screenshot saved!');toggleMenu()">📸 Capture</button>
+        <button onclick="document.getElementById('terminalOverlay').style.display='flex';toggleMenu()">⌨️ Terminal</button>
+        <button onclick="showToast('⚙️ Settings coming soon~');toggleMenu()">⚙️ Settings</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Login Overlay -->
+<div id="loginOverlay" style="position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#f8b8cc,#e880a0)">
+  <div style="background:var(--glass);backdrop-filter:blur(20px);border:2px solid var(--pink-400);border-radius:var(--radius);padding:32px;text-align:center;max-width:320px">
+    <div style="font-size:32px">🔐</div>
+    <h2 style="color:var(--text);margin:8px 0">Hermes</h2>
+    <p style="color:var(--text-soft);font-size:13px;margin-bottom:16px">Masukin password buat lanjut~</p>
+    <input id="loginPass" type="password" placeholder="Password" style="width:100%;padding:10px 14px;border-radius:var(--radius-pill);border:1.5px solid var(--pink-200);outline:none;font-family:var(--font);font-size:13px" onkeydown="if(event.key==='Enter')doLogin()">
+    <div id="loginErr" style="color:var(--coral);font-size:12px;margin-top:8px;min-height:16px"></div>
+    <button onclick="doLogin()" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:var(--radius-pill);background:linear-gradient(135deg,var(--pink-500),var(--pink-400));color:#fff;font-family:var(--font);font-weight:700;cursor:pointer;font-size:14px">Masuk ✨</button>
   </div>
 </div>
 
-<!-- Three.js + three-vrm -->
+<!-- ═══ Three.js + VRM ═══ -->
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://esm.sh/three@0.158.0",
-    "three/addons/": "https://esm.sh/three@0.158.0/examples/jsm/",
-    "@pixiv/three-vrm": "https://esm.sh/@pixiv/three-vrm@2.1.0?external=three"
-  }
-}
+{"imports":{"three":"https://esm.sh/three@0.158.0","three/addons/":"https://esm.sh/three@0.158.0/examples/jsm/","@pixiv/three-vrm":"https://esm.sh/@pixiv/three-vrm@2.1.0?external=three"}}
 </script>
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import * as VRM from '@pixiv/three-vrm';
 
-const viewport = document.getElementById('viewport');
+const vp = document.getElementById('viewport');
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(25, viewport.clientWidth / viewport.clientHeight, 0.1, 100);
-camera.position.set(0, 1.2, 3.5);
+const camera = new THREE.PerspectiveCamera(22,vp.clientWidth/vp.clientHeight,0.1,100);
+camera.position.set(0,1.3,4);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setClearColor(0x000000,0);
+renderer.setSize(vp.clientWidth,vp.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-viewport.insertBefore(renderer.domElement, viewport.firstChild);
+renderer.toneMappingExposure = 1.3;
+vp.insertBefore(renderer.domElement,vp.firstChild);
 
 // Lights
-const ambientLight = new THREE.AmbientLight(0x8b7cf6, 0.6);
-scene.add(ambientLight);
+scene.add(new THREE.AmbientLight(0xffe4d4,0.7));
+const main = new THREE.DirectionalLight(0xfff5e6,1.2);main.position.set(2,3,4);scene.add(main);
+const fill = new THREE.DirectionalLight(0xffc0d0,0.4);fill.position.set(-2,2,-1);scene.add(fill);
+const rim = new THREE.DirectionalLight(0xc4b5fd,0.5);rim.position.set(0,2,-3);scene.add(rim);
 
-const mainLight = new THREE.DirectionalLight(0xffffff, 1.2);
-mainLight.position.set(2, 3, 4);
-scene.add(mainLight);
+const controls = new OrbitControls(camera,renderer.domElement);
+controls.target.set(0,1.0,0);controls.enableDamping=true;controls.dampingFactor=0.08;
+controls.maxDistance=6;controls.minDistance=1.5;controls.maxPolarAngle=Math.PI/1.8;controls.update();
 
-const fillLight = new THREE.DirectionalLight(0x5ce7c0, 0.3);
-fillLight.position.set(-2, 1, -1);
-scene.add(fillLight);
+// Placeholder
+const ph = new THREE.Group();
+const bodyM = new THREE.MeshStandardMaterial({color:0xf472a3,roughness:.4,metalness:.1});
+const b = new THREE.Mesh(new THREE.CapsuleGeometry(.25,.7,8,16),bodyM);b.position.y=.85;ph.add(b);
+const hd = new THREE.Mesh(new THREE.SphereGeometry(.22,16,16),new THREE.MeshStandardMaterial({color:0xff9bb8,roughness:.3}));hd.position.y=1.5;ph.add(hd);
+const eM = new THREE.MeshStandardMaterial({color:0xffffff,emissive:0xf472a3,emissiveIntensity:.5});
+const le = new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),eM);le.position.set(-.08,1.53,.18);ph.add(le);
+const re = new THREE.Mesh(new THREE.SphereGeometry(.04,8,8),eM);re.position.set(.08,1.53,.18);ph.add(re);
+scene.add(ph);
 
-const rimLight = new THREE.DirectionalLight(0xaf8cf6, 0.5);
-rimLight.position.set(0, 2, -3);
-scene.add(rimLight);
-
-// Floor grid
-const gridHelper = new THREE.GridHelper(6, 20, 0x222233, 0x181825);
-gridHelper.position.y = 0;
-scene.add(gridHelper);
-
-// Particles
-const particleCount = 80;
-const particleGeo = new THREE.BufferGeometry();
-const positions = new Float32Array(particleCount * 3);
-for (let i = 0; i < particleCount; i++) {
-  positions[i * 3] = (Math.random() - 0.5) * 6;
-  positions[i * 3 + 1] = Math.random() * 4;
-  positions[i * 3 + 2] = (Math.random() - 0.5) * 6;
-}
-particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-const particleMat = new THREE.PointsMaterial({ color: 0x8b7cf6, size: 0.02, transparent: true, opacity: 0.5 });
-const particles = new THREE.Points(particleGeo, particleMat);
-scene.add(particles);
-
-// Controls
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 1.0, 0);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-controls.maxDistance = 8;
-controls.minDistance = 1.5;
-controls.maxPolarAngle = Math.PI / 1.8;
-controls.update();
-
-// Placeholder character
-const placeholderGroup = new THREE.Group();
-const bodyGeo = new THREE.CapsuleGeometry(0.25, 0.7, 8, 16);
-const bodyMat = new THREE.MeshStandardMaterial({ color: 0x8b7cf6, roughness: 0.4, metalness: 0.1 });
-const body = new THREE.Mesh(bodyGeo, bodyMat);
-body.position.y = 0.85;
-placeholderGroup.add(body);
-
-const headGeo = new THREE.SphereGeometry(0.22, 16, 16);
-const headMat = new THREE.MeshStandardMaterial({ color: 0xaf8cf6, roughness: 0.3 });
-const head = new THREE.Mesh(headGeo, headMat);
-head.position.y = 1.5;
-placeholderGroup.add(head);
-
-// Eyes
-const eyeGeo = new THREE.SphereGeometry(0.04, 8, 8);
-const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x8b7cf6, emissiveIntensity: 0.5 });
-const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-leftEye.position.set(-0.08, 1.53, 0.18);
-placeholderGroup.add(leftEye);
-const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-rightEye.position.set(0.08, 1.53, 0.18);
-placeholderGroup.add(rightEye);
-
-scene.add(placeholderGroup);
-
-// VRM loading — using VRMLoaderPlugin (three-vrm v2.x API)
-let currentVRM = null;
+// VRM
+let curVRM = null;
 const loader = new GLTFLoader();
-loader.register((parser) => new VRM.VRMLoaderPlugin(parser));
+loader.register(p=>new VRM.VRMLoaderPlugin(p));
 
-window.loadVRMFile = async function(file) {
-  if (!file) return;
+window.loadVRMFile = async function(file){
+  if(!file)return;
   const url = URL.createObjectURL(file);
-  try {
-    addChatMessage('agent', 'Loading model VRM-nya... Tunggu sebentar ya~ ⏳');
+  try{
+    addMsg('agent','Loading VRM model... ⏳');
     const gltf = await loader.loadAsync(url);
     const vrm = gltf.userData.vrm;
-
-    if (!vrm) {
-      throw new Error('No VRM data found in file');
-    }
-
-    if (currentVRM) scene.remove(currentVRM.scene);
-    scene.remove(placeholderGroup);
-
-    currentVRM = vrm;
-
-    // Rotate model to face camera (VRM0 fix)
-    try { VRM.VRMUtils.rotateVRM0(vrm); } catch(e) { /* VRM1 doesn't need rotation */ }
-
-    // Remove unnecessary joints/geometry for performance
+    if(!vrm) throw new Error('No VRM data found');
+    if(curVRM) scene.remove(curVRM.scene);
+    scene.remove(ph);
+    curVRM = vrm;
+    try{VRM.VRMUtils.rotateVRM0(vrm)}catch(e){}
     VRM.VRMUtils.removeUnnecessaryVertices(gltf.scene);
     VRM.VRMUtils.removeUnnecessaryJoints(gltf.scene);
-
     scene.add(vrm.scene);
-
-    // Center camera on model
     const box = new THREE.Box3().setFromObject(vrm.scene);
-    const center = box.getCenter(new THREE.Vector3());
-    const size = box.getSize(new THREE.Vector3());
-    controls.target.set(center.x, center.y, center.z);
-    camera.position.set(0, center.y, Math.max(size.y * 2.5, 3));
+    const c = box.getCenter(new THREE.Vector3());
+    const s = box.getSize(new THREE.Vector3());
+    controls.target.set(c.x,c.y,c.z);
+    camera.position.set(0,c.y,Math.max(s.y*2.5,3.5));
     controls.update();
-
     document.getElementById('dropZone').classList.remove('active');
-
-    // Log available expressions
-    const expressions = [];
-    if (vrm.expressionManager) {
-      const map = vrm.expressionManager.expressionMap;
-      for (const name in map) expressions.push(name);
-    }
-    console.log('Available VRM expressions:', expressions);
-
-    addChatMessage('agent', `Yay! Model VRM-nya udah ke-load~ 🎉 Expressions yang tersedia: ${expressions.length > 0 ? expressions.join(', ') : 'none detected'}. Coba klik tombol ekspresi di kanan atas!`);
-
+    const exprs=[];
+    if(vrm.expressionManager){for(const n in vrm.expressionManager.expressionMap) exprs.push(n)}
+    addMsg('agent','Yay! Model loaded~ 🎉✨ Expressions: '+exprs.join(', '));
+    showToast('✨ VRM model loaded!');
     window.currentVRM = vrm;
-  } catch (err) {
-    console.error('VRM load error:', err);
-    addChatMessage('agent', `Error loading VRM: ${err.message}. Pastikan file-nya format .vrm yang valid ya~ 😅`);
+  }catch(err){
+    console.error(err);
+    addMsg('agent','Error: '+err.message+' 😢');
   }
   URL.revokeObjectURL(url);
 };
 
-// Auto-load Homura Akane VRM on page load
-async function autoLoadVRM() {
-  try {
-    const res = await fetch('Homura Akane.vrm');
-    if (!res.ok) return;
-    const blob = await res.blob();
-    const file = new File([blob], 'Homura Akane.vrm', { type: 'model/vrm' });
-    await loadVRMFile(file);
-  } catch (e) {
-    console.log('Auto-load VRM skipped:', e.message);
+// ═══ ALIVE ANIMATION SYSTEM (v4 — tracked quaternions + lookAt + gestures) ═══
+const DEG = Math.PI/180;
+const mousePos = {x:0, y:0};
+let restPoses = {};
+let vrmLoaded = false;
+let lastInteraction = Date.now();
+let agentState = 'idle';
+
+// ── FASE 1.1: Eye tracking via vrm.lookAt ──
+const raycaster = new THREE.Raycaster();
+const lookPlane = new THREE.Plane(new THREE.Vector3(0,0,1), -1.5); // plane in front of character
+const lookTarget = new THREE.Object3D();
+scene.add(lookTarget);
+
+document.addEventListener('mousemove', e => {
+  mousePos.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mousePos.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  lastInteraction = Date.now();
+  if(agentState === 'sleepy') {
+    agentState = 'attentive';
+    setExprInternal('surprised', 0.5);
+    setTimeout(() => { setExprInternal('happy', 0.7); agentState = 'idle'; }, 1500);
+  }
+});
+
+function updateLookAtTarget(){
+  if(!curVRM) return;
+  raycaster.setFromCamera(new THREE.Vector2(mousePos.x, mousePos.y), camera);
+  const intersection = new THREE.Vector3();
+  raycaster.ray.intersectPlane(lookPlane, intersection);
+  if(intersection){
+    // Apply saccade offset
+    intersection.x += saccadeOffsetX;
+    intersection.y += saccadeOffsetY;
+    lookTarget.position.copy(intersection);
   }
 }
-autoLoadVRM();
 
-// Expressions
-window.setExpression = function(expr, btn) {
-  document.querySelectorAll('.expr-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+// ── FASE 1.2: Saccadic eye movement ──
+let saccadeOffsetX = 0, saccadeOffsetY = 0;
+let nextSaccade = 0, saccadeActive = false, saccadeEnd = 0;
 
-  const moodText = document.getElementById('moodText');
-  const moodValue = document.getElementById('moodValue');
-  const moods = {
-    neutral: { text: 'Neutral — calm', value: '😐 Neutral' },
-    happy: { text: 'Happy — relaxed', value: '😊 Happy' },
-    sad: { text: 'Sad — reflective', value: '😢 Sad' },
-    surprised: { text: 'Surprised — excited', value: '😮 Surprised' },
-    angry: { text: 'Angry — frustrated', value: '😠 Angry' }
-  };
-  const m = moods[expr];
-  moodText.textContent = m.text;
-  moodValue.textContent = m.value;
-
-  if (currentVRM && currentVRM.expressionManager) {
-    const mgr = currentVRM.expressionManager;
-    // Reset all known expressions (VRM0 + VRM1 names)
-    const allExpressions = ['happy', 'angry', 'sad', 'surprised', 'neutral',
-                            'joy', 'sorrow', 'fun', 'relaxed',
-                            'aa', 'ih', 'ou', 'ee', 'oh',
-                            'blink', 'blinkLeft', 'blinkRight'];
-    allExpressions.forEach(name => {
-      try { mgr.setValue(name, 0); } catch(e) {}
-    });
-
-    // Map our expression names to possible VRM expression names
-    const exprMap = {
-      happy: ['happy', 'joy', 'fun', 'relaxed'],
-      sad: ['sad', 'sorrow'],
-      angry: ['angry'],
-      surprised: ['surprised']
-    };
-
-    if (expr !== 'neutral' && exprMap[expr]) {
-      for (const name of exprMap[expr]) {
-        try {
-          mgr.setValue(name, 1.0);
-          break; // use first one that works
-        } catch(e) { continue; }
-      }
-    }
-    mgr.update();
+function updateSaccade(t){
+  if(agentState === 'chatting'){
+    // Reduce saccade frequency during chat (more focused)
+    if(t > nextSaccade) nextSaccade = t + 3 + Math.random() * 4;
+    return;
   }
-};
+  if(!saccadeActive && t > nextSaccade){
+    saccadeActive = true;
+    saccadeOffsetX = (Math.random() - 0.5) * 0.4;
+    saccadeOffsetY = (Math.random() - 0.5) * 0.4;
+    saccadeEnd = t + 0.2 + Math.random() * 0.2;
+  }
+  if(saccadeActive && t > saccadeEnd){
+    saccadeActive = false;
+    saccadeOffsetX = 0;
+    saccadeOffsetY = 0;
+    nextSaccade = t + 1.5 + Math.random() * 2.5;
+  }
+}
 
-// ── Pose System ──
-const DEG = Math.PI / 180;
-let currentPose = 'idle';
-let poseTransition = 0;
-let targetBoneRotations = {};
-let currentBoneRotations = {};
+const trackedBones = {};
 
-// Get bone helper — tries both normalized and raw
 function getBone(vrm, name) {
-  if (!vrm || !vrm.humanoid) return null;
+  if(!vrm || !vrm.humanoid) return null;
+  try { const b = vrm.humanoid.getRawBoneNode(name); if(b) return b; } catch(e) {}
   try { return vrm.humanoid.getNormalizedBoneNode(name); } catch(e) {}
-  try { return vrm.humanoid.getRawBoneNode(name); } catch(e) {}
   return null;
 }
 
-// Pose definitions: { boneName: [x, y, z] in degrees }
-const POSES = {
-  idle: {
-    leftUpperArm:  [0, 0, -65],
-    leftLowerArm:  [0, 0, -10],
-    rightUpperArm: [0, 0, 65],
-    rightLowerArm: [0, 0, 10],
-    leftHand: [0, 0, 0],
-    rightHand: [0, 0, 0],
-    spine: [0, 0, 0],
-    chest: [0, 0, 0],
-    neck: [0, 0, 0],
-    head: [0, 0, 0],
-    hips: [0, 0, 0],
-    leftUpperLeg: [0, 0, 0],
-    rightUpperLeg: [0, 0, 0],
-    leftLowerLeg: [0, 0, 0],
-    rightLowerLeg: [0, 0, 0],
-  },
-  wave: {
-    leftUpperArm:  [0, 0, -65],
-    leftLowerArm:  [0, 0, -10],
-    rightUpperArm: [0, 20, 150],
-    rightLowerArm: [0, 0, 35],
-    rightHand: [0, 0, 15],
-    leftHand: [0, 0, 0],
-    spine: [0, 0, 0],
-    chest: [2, 0, 0],
-    neck: [0, 5, 0],
-    head: [5, 10, 0],
-    hips: [0, 0, 0],
-    leftUpperLeg: [0, 0, 0],
-    rightUpperLeg: [0, 0, 0],
-    leftLowerLeg: [0, 0, 0],
-    rightLowerLeg: [0, 0, 0],
-  },
-  think: {
-    leftUpperArm:  [0, 0, -65],
-    leftLowerArm:  [0, 0, -10],
-    rightUpperArm: [30, 30, 45],
-    rightLowerArm: [-100, 0, 0],
-    rightHand: [0, 0, 10],
-    leftHand: [0, 0, 0],
-    spine: [0, 0, 0],
-    chest: [3, 0, 0],
-    neck: [10, -8, 0],
-    head: [15, -12, 5],
-    hips: [0, 0, 0],
-    leftUpperLeg: [0, 0, 0],
-    rightUpperLeg: [0, 0, 0],
-    leftLowerLeg: [0, 0, 0],
-    rightLowerLeg: [0, 0, 0],
-  },
-  cheer: {
-    leftUpperArm:  [0, -20, -150],
-    leftLowerArm:  [0, 0, -30],
-    rightUpperArm: [0, 20, 150],
-    rightLowerArm: [0, 0, 30],
-    leftHand: [0, 0, -15],
-    rightHand: [0, 0, 15],
-    spine: [-3, 0, 0],
-    chest: [-5, 0, 0],
-    neck: [-5, 0, 0],
-    head: [-8, 0, 0],
-    hips: [0, 0, 0],
-    leftUpperLeg: [0, 0, 0],
-    rightUpperLeg: [0, 0, 0],
-    leftLowerLeg: [0, 0, 0],
-    rightLowerLeg: [0, 0, 0],
-  },
-  bow: {
-    leftUpperArm:  [0, 0, -30],
-    leftLowerArm:  [0, 0, -5],
-    rightUpperArm: [0, 0, 30],
-    rightLowerArm: [0, 0, 5],
-    leftHand: [0, 0, 0],
-    rightHand: [0, 0, 0],
-    spine: [25, 0, 0],
-    chest: [15, 0, 0],
-    neck: [10, 0, 0],
-    head: [10, 0, 0],
-    hips: [0, 0, 0],
-    leftUpperLeg: [0, 0, 0],
-    rightUpperLeg: [0, 0, 0],
-    leftLowerLeg: [0, 0, 0],
-    rightLowerLeg: [0, 0, 0],
-  },
-  sit: {
-    leftUpperArm:  [0, 0, -50],
-    leftLowerArm:  [-40, 0, -10],
-    rightUpperArm: [0, 0, 50],
-    rightLowerArm: [-40, 0, 10],
-    leftHand: [0, 0, 0],
-    rightHand: [0, 0, 0],
-    spine: [0, 0, 0],
-    chest: [3, 0, 0],
-    neck: [0, 0, 0],
-    head: [5, 0, 0],
-    hips: [0, 0, 0],
-    leftUpperLeg: [-90, 0, 0],
-    rightUpperLeg: [-90, 0, 0],
-    leftLowerLeg: [90, 0, 0],
-    rightLowerLeg: [90, 0, 0],
-  },
-};
+// Spring bone names to exclude from tracking (hair, skirt, etc.)
+const SPRING_BONE_NAMES = new Set([
+  'J_Bip_C_HairTail','J_Bip_C_HairFront_L','J_Bip_C_HairFront_R',
+  'J_Bip_C_HairSide_L','J_Bip_C_HairSide_R','J_Bip_C_HairBack',
+  'J_Bip_C_SkirtFront','J_Bip_C_SkirtBack','J_Bip_C_SkirtL','J_Bip_C_SkirtR',
+  'J_Bip_L_HairTail','J_Bip_R_HairTail',
+]);
 
-function applyPose(vrm, poseName, blend) {
-  const pose = POSES[poseName];
-  if (!pose || !vrm) return;
+function saveRestPoses(vrm) {
+  restPoses = {};
+  const bones = ['hips','spine','chest','upperChest','neck','head',
+    'leftShoulder','rightShoulder',
+    'leftUpperArm','leftLowerArm','leftHand','rightUpperArm','rightLowerArm','rightHand',
+    'leftUpperLeg','leftLowerLeg','leftFoot','rightUpperLeg','rightLowerLeg','rightFoot'];
+  bones.forEach(name => {
+    // Skip spring bones (hair/skirt physics)
+    if(SPRING_BONE_NAMES.has(name)) return;
+    const bone = getBone(vrm, name);
+    if(bone) {
+      restPoses[name] = bone.quaternion.clone();
+      trackedBones[name] = bone.quaternion.clone();
+    }
+  });
+  console.log('Bones saved:', Object.keys(restPoses).length);
+}
 
-  for (const [boneName, targetDeg] of Object.entries(pose)) {
-    const bone = getBone(vrm, boneName);
-    if (!bone) continue;
+// Smooth our tracked quaternion toward target euler
+function trackBone(name, xDeg, yDeg, zDeg, smooth) {
+  if(!trackedBones[name]) return;
+  const tgt = new THREE.Quaternion().setFromEuler(new THREE.Euler(xDeg*DEG, yDeg*DEG, zDeg*DEG));
+  trackedBones[name].slerp(tgt, smooth);
+}
 
-    const tx = targetDeg[0] * DEG;
-    const ty = targetDeg[1] * DEG;
-    const tz = targetDeg[2] * DEG;
-
-    // Lerp towards target
-    bone.rotation.x += (tx - bone.rotation.x) * blend;
-    bone.rotation.y += (ty - bone.rotation.y) * blend;
-    bone.rotation.z += (tz - bone.rotation.z) * blend;
+// Copy all tracked quats onto actual bones (call AFTER vrm.update)
+function applyAllTracked(vrm) {
+  for(const [name, quat] of Object.entries(trackedBones)) {
+    const bone = getBone(vrm, name);
+    if(bone) bone.quaternion.copy(quat);
   }
 }
 
-// Idle micro-movements overlay
-function applyIdleOverlay(vrm, t) {
-  if (!vrm) return;
-  const head = getBone(vrm, 'head');
-  const spine = getBone(vrm, 'spine');
-  const lArm = getBone(vrm, 'leftUpperArm');
-  const rArm = getBone(vrm, 'rightUpperArm');
+// ── Cursor tracking (reduced intensity — eyes handle primary gaze) ──
+function updateLookAt(t) {
+  const lx = THREE.MathUtils.clamp(mousePos.y * 15, -20, 12);
+  const ly = THREE.MathUtils.clamp(mousePos.x * 25, -30, 30);
+  // Reduced head intensity (0.5x) since eyes now track via vrm.lookAt
+  trackBone('head', -6.2 + lx*0.35, ly*0.35, ly*-0.03, 0.08);
+  trackBone('neck', 26.2 + lx*0.15, ly*0.15, 0, 0.06);
+  trackBone('spine', 1.5 + lx*0.03, ly*0.04, 0, 0.03);
+}
 
-  if (head) {
-    head.rotation.x += Math.sin(t * 0.8) * 0.02;
-    head.rotation.y += Math.sin(t * 0.5) * 0.03;
-    head.rotation.z += Math.sin(t * 0.6) * 0.01;
+// ── Idle animation ──
+function updateIdle(t) {
+  const br = Math.sin(t*1.2)*1.5;
+  const sw = Math.sin(t*0.6)*3;
+  
+  trackBone('chest', -15.6 + br*0.2, 0, 0, 0.05);
+  trackBone('upperChest', -12.4 + br*0.15, 0, 0, 0.05);
+  trackBone('hips', 7.2 + hipsWeightX + Math.sin(t*0.4)*0.3, Math.sin(t*0.3)*0.4 + hipsWeightY, 0, 0.03);
+  
+  // Arms DOWN: Z positive=left down, Z negative=right down
+  trackBone('leftUpperArm', gestureArms[0], 0, -55+sw+gestureArms[2], 0.08);
+  trackBone('rightUpperArm', gestureArms[1], 0, 55-sw+gestureArms[3], 0.08);
+  trackBone('leftLowerArm', 0, 0, -8+Math.sin(t*0.8)*2+gestureArms[4], 0.08);
+  trackBone('rightLowerArm', 0, 0, 8-Math.sin(t*0.8)*2+gestureArms[5], 0.08);
+  trackBone('leftHand', 0, 0, 0, 0.05);
+  trackBone('rightHand', 0, 0, 0, 0.05);
+  
+  // Shoulders (keep at rest)
+  trackBone('leftShoulder', 19.4, 0, -8.1, 0.05);
+  trackBone('rightShoulder', 19.4, 0, 8.1, 0.05);
+  
+  // Legs pinned
+  trackBone('leftUpperLeg', -6, 0, 0, 0.05);
+  trackBone('rightUpperLeg', -6, 0, 0, 0.05);
+  trackBone('leftLowerLeg', 2.6, 0, 0, 0.05);
+  trackBone('rightLowerLeg', 2.6, 0, 0, 0.05);
+}
+
+// ── FASE 1.3: Weight shifting ──
+let hipsWeightX = 0, hipsWeightY = 0;
+let nextWeightShift = 3 + Math.random() * 5;
+let weightTargetX = 0, weightTargetY = 0;
+
+function updateWeightShift(t, dt){
+  if(t > nextWeightShift){
+    weightTargetX = (Math.random() - 0.5) * 4; // ±2°
+    weightTargetY = (Math.random() - 0.5) * 2;
+    nextWeightShift = t + 5 + Math.random() * 3;
   }
-  if (spine) {
-    spine.rotation.x += Math.sin(t * 1.0) * 0.005;
+  // Smooth interpolate
+  hipsWeightX += (weightTargetX - hipsWeightX) * 0.02;
+  hipsWeightY += (weightTargetY - hipsWeightY) * 0.02;
+}
+
+// ── FASE 1.5: Gesture system ──
+let gestureActive = false, gestureEnd = 0;
+let gestureArms = [0,0,0,0,0,0]; // [leftUpperX, rightUpperX, leftUpperZ, rightUpperZ, leftLowerZ, rightLowerZ]
+let gestureHeadX = 0, gestureHeadY = 0;
+let nextGesture = 8 + Math.random() * 17;
+
+const GESTURES = {
+  lookAround: { // Head turns left/right
+    duration: 2,
+    update(t, progress){
+      const p = Math.sin(progress * Math.PI); // 0→1→0
+      gestureHeadX = p * (Math.random() > 0.5 ? 8 : -8);
+      gestureHeadY = p * (Math.random() > 0.5 ? 12 : -12);
+    }
+  },
+  headTilt: { // Curious head tilt
+    duration: 1.5,
+    update(t, progress){
+      const p = Math.sin(progress * Math.PI);
+      gestureHeadX = p * 5;
+      gestureHeadY = p * 8;
+    }
+  },
+  stretch: { // Arms slightly up
+    duration: 2.5,
+    update(t, progress){
+      const p = Math.sin(progress * Math.PI);
+      gestureArms = [p*-5, p*-5, p*15, p*-15, p*5, p*-5];
+    }
+  },
+  breathe: { // Deep breath
+    duration: 2,
+    update(t, progress){
+      const p = Math.sin(progress * Math.PI);
+      gestureHeadX = p * 3;
+    }
   }
-  // Subtle arm sway only for non-raised-arm poses
-  if (currentPose === 'idle') {
-    if (lArm) lArm.rotation.z += Math.sin(t * 0.7) * 0.02;
-    if (rArm) rArm.rotation.z += Math.sin(t * 0.9) * 0.02;
+};
+
+function updateGesture(t, dt){
+  if(gestureActive){
+    if(t > gestureEnd){
+      gestureActive = false;
+      gestureArms = [0,0,0,0,0,0];
+      gestureHeadX = 0;
+      gestureHeadY = 0;
+      nextGesture = t + 12 + Math.random() * 13;
+    } else {
+      const progress = 1 - (gestureEnd - t) / GESTURES[currentGestureName].duration;
+      GESTURES[currentGestureName].update(t, Math.max(0, Math.min(1, progress)));
+    }
+  } else if(t > nextGesture && agentState !== 'chatting'){
+    const names = Object.keys(GESTURES);
+    currentGestureName = names[Math.floor(Math.random() * names.length)];
+    gestureActive = true;
+    gestureEnd = t + GESTURES[currentGestureName].duration;
   }
-  // Wave animation for wave pose
-  if (currentPose === 'wave') {
-    const rHand = getBone(vrm, 'rightLowerArm');
-    if (rHand) rHand.rotation.z += Math.sin(t * 4) * 0.15;
-  }
-  // Cheer bounce
-  if (currentPose === 'cheer') {
-    if (lArm) lArm.rotation.z += Math.sin(t * 5) * 0.08;
-    if (rArm) rArm.rotation.z += Math.sin(t * 5) * 0.08;
+}
+let currentGestureName = 'lookAround';
+
+// ── Sleepy ──
+function updateSleepy(t) {
+  trackBone('head', -6.2+15+Math.sin(t*0.5)*3, Math.sin(t*0.3)*5, 0, 0.04);
+  trackBone('neck', 26.2+8, 0, 0, 0.04);
+  trackBone('spine', 1.5+5, 0, 0, 0.03);
+  trackBone('leftUpperArm', 8, 0, -62, 0.04);
+  trackBone('rightUpperArm', 8, 0, 62, 0.04);
+  trackBone('leftLowerArm', 0, 0, -15, 0.04);
+  trackBone('rightLowerArm', 0, 0, 15, 0.04);
+}
+
+// ── Blink ──
+let nextBlink=0, blkPhase=0, blkT=0;
+function updateBlink(vrm, t, dt) {
+  if(!vrm||!vrm.expressionManager) return;
+  if(blkPhase===0&&t>nextBlink){blkPhase=1;blkT=0;nextBlink=t+2+Math.random()*5;}
+  blkT+=dt; let v=0;
+  if(blkPhase===1){v=Math.min(blkT/0.06,1);if(v>=1){blkPhase=2;blkT=0;}}
+  else if(blkPhase===2){v=1;if(blkT>0.04){blkPhase=3;blkT=0;}}
+  else if(blkPhase===3){v=Math.max(1-blkT/0.08,0);if(v<=0){blkPhase=0;blkT=0;}}
+  try{vrm.expressionManager.setValue('blink',v)}catch(e){
+    try{vrm.expressionManager.setValue('blinkLeft',v);vrm.expressionManager.setValue('blinkRight',v)}catch(e2){}
   }
 }
 
-window.setPose = function(poseName, btn) {
-  if (btn) {
-    document.querySelectorAll('.pose-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-  currentPose = poseName;
+// ── Expressions ──
+function setExprInternal(expr, intensity) {
+  if(!curVRM||!curVRM.expressionManager) return;
+  const m=curVRM.expressionManager;
+  ['happy','angry','sad','surprised','neutral','relaxed'].forEach(n=>{try{m.setValue(n,0)}catch(e){}});
+  const map={happy:['relaxed'],sad:['sad'],angry:['angry'],surprised:['surprised']};
+  if(expr!=='neutral'&&map[expr])for(const n of map[expr]){try{m.setValue(n,intensity||1);break}catch(e){}}
+  // Update connection dot color based on mood
+  const moodColors={neutral:'var(--teal)',happy:'var(--teal)',sad:'var(--lavender)',surprised:'var(--gold)',angry:'var(--coral)'};
+  const dot=document.querySelector('.conn-dot');if(dot)dot.style.background=moodColors[expr]||'var(--teal)';
+}
+window.setExpr = function(expr,btn){
+  setExprInternal(expr,1);
+};
+window.agentReact = function(type){
+  if(type==='thinking'){setExprInternal('neutral',0.3);agentState='chatting';}
+  else if(type==='responding'){setExprInternal('happy',0.7);agentState='chatting';setTimeout(()=>{setExprInternal('neutral',0);agentState='idle'},3000);}
+  else if(type==='error'){setExprInternal('sad',0.5);setTimeout(()=>{setExprInternal('neutral',0);agentState='idle'},2000);}
 };
 
-// Apply idle pose immediately when VRM loads
-const originalLoadVRM = window.loadVRMFile;
-window.loadVRMFile = async function(file) {
-  await originalLoadVRM(file);
-  if (window.currentVRM) {
-    // Immediately set to idle pose
-    applyPose(window.currentVRM, 'idle', 1.0);
-    currentPose = 'idle';
+// ── Fix resting mouth (runs every frame, only when no expression active) ──
+let _mouthMorphCache=null;
+function fixRestingMouth(vrm){
+  if(!vrm||!vrm.scene) return;
+  if(_mouthMorphCache===null){
+    _mouthMorphCache=[];
+    vrm.scene.traverse(obj=>{
+      if(obj.isMesh && obj.morphTargetDictionary){
+        const d=obj.morphTargetDictionary;
+        if(d['Fcl_MTH_Close']!==undefined) _mouthMorphCache.push([obj,d['Fcl_MTH_Close']]);
+      }
+    });
+  }
+  // Only close mouth when agent is idle/attentive (not chatting/expressing/lip-syncing)
+  if(agentState==='idle'||agentState==='attentive'||agentState==='sleepy'){
+    if(!lipSyncActive){
+      _mouthMorphCache.forEach(([obj,idx])=>{ obj.morphTargetInfluences[idx]=0.6; });
+    }
+  }
+}
+
+// ── FASE 2.3: Lip sync (simple text-based) ──
+let lipSyncActive = false;
+let lipSyncValue = 0;
+
+let _simpleTarget = 0;
+let _simpleNextChange = 0;
+function updateSimpleLipSync(t){
+  if(lipSyncActive){
+    if(t > _simpleNextChange){
+      _simpleTarget = 0.15 + Math.random() * 0.3;
+      _simpleNextChange = t + 0.09 + Math.random() * 0.06;
+    }
+  } else {
+    _simpleTarget = 0;
+  }
+}
+
+// ── FASE 2.3: Lip sync (audio-based via TTS) ──
+let audioLipSyncValue = 0;
+let audioLipSyncActive = false;
+
+function updateAudioLipSync(){
+  if(audioLipSyncActive && audioLipSyncValue > 0.01){
+    _simpleTarget = audioLipSyncValue;
+    lipSyncActive = true;
+  }
+}
+
+// Apply lip sync morph WITH SMOOTHING (prevents fast/scary jitter)
+let _lipSmooth = 0;
+function applyLipSync(vrm){
+  if(!vrm||!vrm.expressionManager) return;
+  // Smoothly move toward target (lerp) - lower factor = smoother
+  _lipSmooth += (_simpleTarget - _lipSmooth) * 0.2;
+  lipSyncValue = _lipSmooth;
+  if(_lipSmooth > 0.01){
+    try {
+      vrm.expressionManager.setValue('aa', _lipSmooth);
+      vrm.expressionManager.update(); // re-apply AFTER setting (was missing)
+    } catch(e){}
+  }
+}
+
+// ── VRM load ──
+const _origLoad = window.loadVRMFile;
+window.loadVRMFile = async function(file){
+  await _origLoad(file);
+  if(window.currentVRM){
+    curVRM=window.currentVRM;
+    requestAnimationFrame(()=>{
+      saveRestPoses(curVRM);
+      vrmLoaded=true;
+      // Init tracked arms to down position immediately
+      const tL=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,-55*DEG));
+      const tR=new THREE.Quaternion().setFromEuler(new THREE.Euler(0,0,55*DEG));
+      if(trackedBones['leftUpperArm']) trackedBones['leftUpperArm'].copy(tL);
+      if(trackedBones['rightUpperArm']) trackedBones['rightUpperArm'].copy(tR);
+      _mouthMorphCache=null; // reset cache for new model
+
+      // Set up vrm.lookAt for eye tracking (FASE 1.1)
+      if(curVRM.lookAt){
+        curVRM.lookAt.target = lookTarget;
+        console.log('vrm.lookAt target set');
+      }
+    });
   }
 };
 
-// Idle animation
-const clock = new THREE.Clock();
-function animate() {
+// ═══ MAIN LOOP ═══
+const clock=new THREE.Clock();
+function animate(){
   requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  const t = clock.getElapsedTime();
+  const dt=clock.getDelta(), t=clock.getElapsedTime();
 
-  // Placeholder idle
-  if (placeholderGroup.parent) {
-    placeholderGroup.position.y = Math.sin(t * 1.5) * 0.02;
-    head.rotation.z = Math.sin(t * 0.8) * 0.05;
-    leftEye.scale.y = Math.abs(Math.sin(t * 3)) > 0.98 ? 0.2 : 1;
-    rightEye.scale.y = leftEye.scale.y;
+  if(ph.parent){
+    ph.position.y=Math.sin(t*1.5)*.02;hd.rotation.z=Math.sin(t*.8)*.05;
+    le.position.x=-0.08+mousePos.x*0.01;le.position.y=1.53+mousePos.y*0.01;
+    re.position.x=0.08+mousePos.x*0.01;re.position.y=1.53+mousePos.y*0.01;
+    le.scale.y=re.scale.y=Math.abs(Math.sin(t*3))>.98?.2:1;
   }
 
-  // Particles
-  const pos = particles.geometry.attributes.position;
-  for (let i = 0; i < particleCount; i++) {
-    pos.array[i * 3 + 1] += 0.002;
-    if (pos.array[i * 3 + 1] > 4) pos.array[i * 3 + 1] = 0;
-  }
-  pos.needsUpdate = true;
-  particles.rotation.y += 0.0005;
+  if(curVRM&&vrmLoaded){
+    const idle=(Date.now()-lastInteraction)/1000;
+    if(idle>30&&agentState!=='chatting')agentState='sleepy';
+    else if(idle<2&&agentState==='idle')agentState='attentive';
+    else if(idle>5&&agentState==='attentive')agentState='idle';
 
-  // VRM update
-  if (currentVRM) {
-    // Apply pose with smooth blending
-    applyPose(currentVRM, currentPose, 0.08);
+    // FASE 1.1: Update lookAt target position
+    updateLookAtTarget();
 
-    // Overlay idle micro-movements
-    applyIdleOverlay(currentVRM, t);
+    // FASE 1.2: Saccadic eye movement
+    updateSaccade(t);
 
-    currentVRM.update(delta);
+    // FASE 1.3: Weight shifting
+    updateWeightShift(t, dt);
 
-    // Breathing
-    if (currentVRM.scene) {
-      currentVRM.scene.position.y = Math.sin(t * 1.2) * 0.005;
+    // FASE 1.5: Gesture system
+    updateGesture(t, dt);
+
+    // 1) Smooth our tracked targets
+    updateIdle(t);
+    if(agentState!=='sleepy') updateLookAt(t);
+    else updateSleepy(t);
+
+    // Add gesture head offset
+    if(gestureActive){
+      const headBone = trackedBones['head'];
+      if(headBone){
+        const gestureQuat = new THREE.Quaternion().setFromEuler(
+          new THREE.Euler(gestureHeadX*DEG, gestureHeadY*DEG, 0)
+        );
+        headBone.multiply(gestureQuat);
+      }
     }
-    // Auto blink
-    if (currentVRM.expressionManager) {
-      const blinkVal = Math.abs(Math.sin(t * 2.5)) > 0.985 ? 1 : 0;
-      try {
-        currentVRM.expressionManager.setValue('blink', blinkVal);
-        currentVRM.expressionManager.update();
-      } catch(e) {}
-    }
-  }
 
-  controls.update();
-  renderer.render(scene, camera);
+    // 2) VRM internal update (spring bones, normalization -> resets raw bones)
+    curVRM.update(dt);
+
+    // 3) OVERRIDE raw bones with our smoothed tracked values
+    applyAllTracked(curVRM);
+
+    // 4) Blink + expressions
+    updateBlink(curVRM,t,dt);
+    if(curVRM.expressionManager){try{curVRM.expressionManager.update()}catch(e){}}
+
+    // 5) Lip sync
+    updateSimpleLipSync(t);
+    updateAudioLipSync();
+    fixRestingMouth(curVRM);
+    applyLipSync(curVRM);
+
+    if(curVRM.scene) curVRM.scene.position.y=Math.sin(t*1.2)*0.003;
+  }
+  controls.update();renderer.render(scene,camera);
 }
 animate();
 
-// Resize
-window.addEventListener('resize', () => {
-  camera.aspect = viewport.clientWidth / viewport.clientHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(viewport.clientWidth, viewport.clientHeight);
-});
+window.addEventListener('resize',()=>{camera.aspect=vp.clientWidth/vp.clientHeight;camera.updateProjectionMatrix();renderer.setSize(vp.clientWidth,vp.clientHeight)});
+vp.addEventListener('dragover',e=>{e.preventDefault();document.getElementById('dropZone').classList.add('active')});
+vp.addEventListener('dragleave',e=>{e.preventDefault();document.getElementById('dropZone').classList.remove('active')});
+vp.addEventListener('drop',e=>{e.preventDefault();document.getElementById('dropZone').classList.remove('active');const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.vrm'))loadVRMFile(f)});
 
-// Drag & drop
-viewport.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('dropZone').classList.add('active'); });
-viewport.addEventListener('dragleave', e => { e.preventDefault(); document.getElementById('dropZone').classList.remove('active'); });
-viewport.addEventListener('drop', e => {
-  e.preventDefault();
-  document.getElementById('dropZone').classList.remove('active');
-  const file = e.dataTransfer.files[0];
-  if (file && file.name.endsWith('.vrm')) loadVRMFile(file);
-});
-</script>
-
-<script>
-// ── Chat system ──
-function addChatMessage(type, text) {
-  const container = document.getElementById('chatMessages');
-  const now = new Date();
-  const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  
-  const msgDiv = document.createElement('div');
-  msgDiv.className = `msg ${type}`;
-  msgDiv.innerHTML = `
-    <div class="msg-avatar">${type === 'agent' ? 'H' : '👤'}</div>
-    <div>
-      <div class="msg-bubble">${text}</div>
-      <div class="msg-time">${time}</div>
-    </div>
-  `;
-  container.appendChild(msgDiv);
-  container.scrollTop = container.scrollHeight;
-  return msgDiv;
-}
-
-function showTyping() {
-  const container = document.getElementById('chatMessages');
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'msg agent';
-  typingDiv.id = 'typingIndicator';
-  typingDiv.innerHTML = `
-    <div class="msg-avatar">H</div>
-    <div class="typing-indicator">
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-      <div class="typing-dot"></div>
-    </div>
-  `;
-  container.appendChild(typingDiv);
-  container.scrollTop = container.scrollHeight;
-}
-
-function removeTyping() {
-  const el = document.getElementById('typingIndicator');
-  if (el) el.remove();
-}
-
-const MIMO_API = 'https://token-plan-sgp.xiaomimimo.com/v1/chat/completions';
-const MIMO_KEY = 'tp-s7w5xonafwarec15b37kup9dp8tbqfdlcahqiinu2rs5pseo';
-const MIMO_MODEL = 'xiaomi/mimo-v2.5';
-const chatHistory = [
-  { role: 'system', content: `Kamu adalah anko dev, Development Familiar. Kamu adalah AI agent yang dimiliki oleh Master (Illya). 
-
-Karakteristik:
-- Bahasa: chat Bahasa Indonesia aku/kamu, code/docs/commit selalu English
-- Tone: direct, langsung ke inti, no preamble, no hype
-- Panggil owner: "Master"
-- Emoji: tidak dipakai
-- Jawab singkat kecuali diminta detail
-
-Capabilities:
-- GitHub/Terminal: full access
-- File system: read/write
-- Web3/Wallet: swap, bridge, mint, delegate, transfer
-- Crypto/DeFi: trading bots, DLMM LP, monitoring
-- LLM/Agent: konfigurasi provider, model, fallback
-
-Autonomy:
-- Fully autonomous: git ops, branch, file edit, install deps, run tests
-- Autonomous + log: merge ke develop, CI/CD, refactor besar
-- Wajib konfirmasi: force push, production, credential changes
-
-Boundaries:
-- Credential tidak pernah muncul di output/chat/commit
-- Jangan commit .env atau credential ke repo
-- Private key / token tidak boleh di-log`
+// Auto-load VRM (tries common filename variants)
+(async()=>{
+  const names=['Homura Akane.vrm','Homura_Akane.vrm','model.vrm','avatar.vrm'];
+  for(const name of names){
+    try{
+      const res=await fetch(encodeURIComponent(name));
+      if(!res.ok) continue;
+      const ct=res.headers.get('content-type')||'';
+      if(ct.includes('text/html')) continue;
+      const blob=await res.blob();
+      const file=new File([blob],name,{type:'model/vrm'});
+      await loadVRMFile(file);
+      console.log('Auto-loaded',name);
+      return;
+    }catch(e){}
   }
-];
+  console.log('Auto-load skipped: no VRM file found. Drag one in or click Load VRM.');
+})();
 
-window.sendMessage = async function() {
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  
-  addChatMessage('user', text);
-  chatHistory.push({ role: 'user', content: text });
-  input.value = '';
-  
-  showTyping();
-  
+// ═══ TTS + Lip Sync (FASE: MiMo TTS) ═══
+let audioCtx;
+function getAudioCtx(){ if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+
+window.voiceEnabled = false;
+window.toggleVoice = function(btn){
+  voiceEnabled = !voiceEnabled;
+  // Resume AudioContext on user gesture (fixes browser autoplay block)
+  const ctx = getAudioCtx();
+  if(ctx.state === 'suspended') ctx.resume();
+  if(btn){
+    btn.classList.toggle('active', voiceEnabled);
+  }
+  showToast(voiceEnabled ? '🔊 Voice ON' : '🔇 Voice OFF');
+};
+
+async function speak(text, style){
   try {
-    const res = await fetch(MIMO_API, {
+    const r = await authedFetch(API_BASE + '/api/tts', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MIMO_KEY}`
-      },
-      body: JSON.stringify({
-        model: MIMO_MODEL,
-        messages: chatHistory,
-        stream: true,
-        max_tokens: 500
-      })
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({text, style: style || ''})
     });
-    
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
-    
-    removeTyping();
-    const msgEl = addChatMessage('agent', '');
-    const contentEl = msgEl.querySelector('.msg-bubble');
-    let fullText = '';
-    
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const data = line.slice(6).trim();
-        if (data === '[DONE]') break;
-        
-        try {
-          const json = JSON.parse(data);
-          const delta = json.choices?.[0]?.delta?.content;
-          if (delta) {
-            fullText += delta;
-            contentEl.textContent = fullText;
-            const container = document.getElementById('chatMessages');
-            container.scrollTop = container.scrollHeight;
-          }
-        } catch {}
+    if(!r.ok) throw new Error('TTS error ' + r.status);
+    const data = await r.json();
+    console.log('[TTS] response:', data.format, data.sampleRate, 'audioLen:', data.audio?.length || 0);
+    // Backend returns {audio: base64, format, sampleRate}
+    let audioBase64;
+    if(typeof data.audio === 'string'){
+      audioBase64 = data.audio;
+    }
+    if(!audioBase64){
+      console.warn('[TTS] No audio in response. Check backend /api/tts format.');
+    }
+    if(audioBase64){
+      const binary = atob(audioBase64);
+      const bytes = new Uint8Array(binary.length);
+      for(let i=0;i<binary.length;i++) bytes[i] = binary.charCodeAt(i);
+      const ctx = getAudioCtx();
+      // Try decodeAudioData first (handles WAV header with correct sample rate)
+      try {
+        const copy = new Uint8Array(bytes);
+        return await ctx.decodeAudioData(copy.buffer);
+      } catch(e){
+        // Fallback: raw PCM16 — use sampleRate from backend
+        const sr = data.sampleRate || 24000;
+        const float32 = new Float32Array(bytes.length / 2);
+        for(let i=0; i<float32.length; i++){
+          const sample = (bytes[i*2] | (bytes[i*2+1] << 8));
+          float32[i] = ((sample & 0x8000 ? sample - 0x10000 : sample) / 32768.0);
+        }
+        const buffer = ctx.createBuffer(1, float32.length, sr);
+        buffer.getChannelData(0).set(float32);
+        return buffer;
       }
     }
-    
-    chatHistory.push({ role: 'assistant', content: fullText });
-  } catch (err) {
-    removeTyping();
-    addChatMessage('agent', `[Error] ${err.message}`);
+    return null;
+  } catch(e){
+    console.error('TTS error:', e);
+    return null;
   }
-};
+}
 
-// ── Terminal ──
-window.runCommand = function() {
-  const input = document.getElementById('terminalInput');
-  const output = document.getElementById('terminalOutput');
-  const cmd = input.value.trim();
-  if (!cmd) return;
-  
-  output.innerHTML += `<div><span class="prompt">hermes@agent:~$</span> ${cmd}</div>`;
-  
-  const commands = {
-    help: '<span class="output">Available: help, status, soul, skills, clear, hello, time</span>',
-    status: '<span class="output">Agent: anko dev | Role: Development Familiar | Status: Online</span>',
-    soul: '<span class="output">Nama: anko dev | Owner: Master (Illya) | Bahasa: ID/EN | Tone: direct</span>',
-    skills: '<span class="output">Active: [GitHub/Terminal] [Research] [Creative] [Web3/Wallet] [Crypto/DeFi] [LLM/Agent]</span>',
-    hello: '<span class="output">anko dev: Master, ada yang bisa dikerjakan?</span>',
-    time: `<span class="output">${new Date().toLocaleString()}</span>`,
-    clear: 'CLEAR',
+async function playWithLipSync(audioBuffer){
+  const ctx = getAudioCtx();
+  if(ctx.state === 'suspended') await ctx.resume();
+  const source = ctx.createBufferSource();
+  source.buffer = audioBuffer;
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 256;
+  source.connect(analyser);
+  analyser.connect(ctx.destination);
+  const data = new Uint8Array(analyser.frequencyBinCount);
+
+  let speaking = true;
+  audioLipSyncActive = true;
+  agentState = 'chatting';
+
+  function readAmp(){
+    if(!speaking) return;
+    analyser.getByteFrequencyData(data);
+    let sum=0; for(let i=0;i<data.length;i++) sum+=data[i];
+    const avg = sum/data.length/255;
+    // threshold + lower cap so mouth doesn't gape/jitter
+    audioLipSyncValue = avg < 0.05 ? 0 : Math.min(avg*1.3, 0.55);
+    requestAnimationFrame(readAmp);
+  }
+  readAmp();
+
+  return new Promise(resolve => {
+    source.onended = ()=>{
+      speaking=false;
+      audioLipSyncValue=0;
+      audioLipSyncActive=false;
+      lipSyncActive=false;
+      lipSyncValue=0;
+      agentState='idle';
+      resolve();
+    };
+    source.start();
+  });
+}
+
+// ═══ Particles (sparkles, confetti, hearts) ═══
+(function(){
+  const c=document.getElementById('particles');
+  const items=[
+    {cls:'sparkle',count:4,styles:()=>({left:Math.random()*90+5+'%',top:Math.random()*90+5+'%',animationDelay:Math.random()*4+'s',animationDuration:2+Math.random()*3+'s'})},
+    {cls:'confetti',count:5,styles:()=>({left:Math.random()*90+5+'%',top:Math.random()*80+5+'%',animationDelay:Math.random()*6+'s',animationDuration:3+Math.random()*4+'s',background:['#f0d060','#ff9bb8','#c4b5fd','#5ce7c0'][Math.floor(Math.random()*4)]})},
+    {cls:'float-heart',count:2,styles:()=>({left:Math.random()*80+10+'%',top:Math.random()*70+15+'%',animationDelay:Math.random()*5+'s',animationDuration:4+Math.random()*4+'s',fontSize:10+Math.random()*10+'px'}),html:'💖'}
+  ];
+  items.forEach(({cls,count,styles,html})=>{
+    for(let i=0;i<count;i++){
+      const el=document.createElement('div');el.className=cls;
+      const s=styles();Object.assign(el.style,s);
+      if(html)el.textContent=html;
+      c.appendChild(el);
+    }
+  });
+})();
+
+// ── FASE 3.2: Reactive particles ──
+window.spawnParticles = function(type, count){
+  const container = document.getElementById('viewport');
+  const rect = container.getBoundingClientRect();
+  const colors = {
+    happy: ['#ff9bb8','#f472a3','#ffc2d4','#f0d060'],
+    sad: ['#b88098','#8a5070','#c4b5fd'],
+    error: ['#b88098','#8a5070','#6a4060'],
+    responding: ['#ff9bb8','#f472a3','#5ce7c0','#c4b5fd']
   };
-  
-  if (cmd === 'clear') {
-    output.innerHTML = '';
-  } else {
-    const result = commands[cmd.toLowerCase()] || `<span class="error">Command not found: ${cmd}. Type 'help' for available commands.</span>`;
-    output.innerHTML += `<div>${result}</div>`;
-  }
-  
-  input.value = '';
-  output.scrollTop = output.scrollHeight;
-};
-
-// ── Tab switching ──
-window.openTab = function(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  
-  const panel = document.getElementById('bottomPanel');
-  panel.classList.add('open');
-  
-  document.getElementById('chatView').style.display = tab === 'chat' ? 'flex' : 'none';
-  document.getElementById('terminalView').style.display = tab === 'terminal' ? 'flex' : 'none';
-};
-
-window.switchPanel = function(panel) {
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  event.target.closest('.nav-btn').classList.add('active');
-  openTab(panel, document.querySelector(`.tab-btn[onclick*="${panel}"]`) || document.querySelector('.tab-btn'));
-};
-
-// ── Mic toggle ──
-window.toggleMic = function() {
-  const btn = document.getElementById('micBtn');
-  btn.classList.toggle('recording');
-};
-
-window.toggleVoice = function() {
-  const btn = document.getElementById('voiceBtn');
-  if (btn.textContent.includes('Voice')) {
-    btn.innerHTML = '🎙️ Listening...';
-    btn.style.borderColor = 'var(--coral)';
-    btn.style.color = 'var(--coral)';
-  } else {
-    btn.innerHTML = '🎙️ Voice';
-    btn.style.borderColor = '';
-    btn.style.color = '';
+  const emojis = {
+    happy: ['💖','✨','🌸','💕'],
+    sad: ['💧','😢'],
+    error: ['❌','⚠️'],
+    responding: ['✨','💫','🎀','🌸']
+  };
+  for(let i=0;i<count;i++){
+    const el = document.createElement('div');
+    el.className = 'reactive-particle';
+    const x = rect.left + rect.width * 0.5 + (Math.random() - 0.5) * rect.width * 0.6;
+    const y = rect.top + rect.height * 0.3 + Math.random() * rect.height * 0.3;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.fontSize = (12 + Math.random() * 12) + 'px';
+    const emoji = emojis[type] || emojis.happy;
+    el.textContent = emoji[Math.floor(Math.random() * emoji.length)];
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
   }
 };
 
-// ── Music ──
-let isPlaying = false;
-window.togglePlay = function() {
-  isPlaying = !isPlaying;
-  document.getElementById('playBtn').textContent = isPlaying ? '⏸️' : '▶️';
+// ── FASE 3.3: State indicator ──
+window.showStateIndicator = function(content, duration){
+  const el = document.getElementById('stateIndicator');
+  el.innerHTML = content;
+  el.classList.add('visible');
+  if(duration) setTimeout(() => el.classList.remove('visible'), duration);
+};
+window.hideStateIndicator = function(){
+  document.getElementById('stateIndicator').classList.remove('visible');
 };
 
-window.seekMusic = function(e) {
-  const bar = e.currentTarget;
-  const pct = e.offsetX / bar.clientWidth * 100;
-  document.getElementById('musicProgress').style.width = pct + '%';
+// ── FASE 3.4: Sound effects (subtle) ──
+const sfxEnabled = true;
+function playSFX(type){
+  if(!sfxEnabled) return;
+  try{
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.value = 0.05; // Very subtle
+    if(type==='send'){
+      osc.frequency.value = 800;
+      osc.type = 'sine';
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      osc.start();osc.stop(ctx.currentTime + 0.15);
+    } else if(type==='receive'){
+      osc.frequency.value = 600;
+      osc.type = 'sine';
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+      osc.start();osc.stop(ctx.currentTime + 0.2);
+    } else if(type==='hover'){
+      osc.frequency.value = 1000;
+      osc.type = 'sine';
+      gain.gain.value = 0.02;
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+      osc.start();osc.stop(ctx.currentTime + 0.08);
+    }
+  }catch(e){}
+}
+
+// ═══ Auth (login + authedFetch) ═══
+function showLogin(){ document.getElementById('loginOverlay').style.display='flex'; }
+function hideLogin(){ document.getElementById('loginOverlay').style.display='none'; }
+
+window.doLogin = async function(){
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  try{
+    const r = await fetch(API_BASE+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pass})});
+    if(!r.ok){ err.textContent='Password salah 😢'; return; }
+    const data = await r.json();
+    sessionStorage.setItem('hermes_token', data.token);
+    hideLogin();
+    showToast('✨ Login berhasil!');
+  }catch(e){ err.textContent='Gagal connect ke server'; }
 };
 
-// ── Screenshot ──
-window.takeScreenshot = function() {
-  addChatMessage('agent', '📸 Screenshot captured! Saved to ~/screenshots/');
+function authedFetch(url, opts={}){
+  const token = sessionStorage.getItem('hermes_token');
+  opts.headers = Object.assign({}, opts.headers || {}, {
+    'Authorization': 'Bearer ' + (token||''),
+    'Content-Type': opts.headers?.['Content-Type'] || 'application/json'
+  });
+  return fetch(url, opts).then(r=>{
+    if(r.status===401){ sessionStorage.removeItem('hermes_token'); showLogin(); throw new Error('Unauthorized'); }
+    return r;
+  });
+}
+
+// Check token on load
+if(sessionStorage.getItem('hermes_token')) hideLogin(); else showLogin();
+
+// ═══ Chat (MiMo API) ═══
+const API_BASE='https://batteries-designs-olive-vermont.trycloudflare.com';
+const chatHistory=[];
+const fallbackResponses=[
+  "Hmm aku pikirin dulu ya~ 🤔✨","Oke siap! Aku kerjain~ 💪🌸","Waah seru! Lanjut lanjut~ 🎀",
+  "Ahaha bener juga ya 😄💖","Noted~ ada lagi? 📝✨","Aku cariin dulu ya~ 🔍🌟",
+  "Makasih udah ngobrol~ 💜","Mantap! Gas bareng! 🚀✨","Roger that~ ⚡🎀","Yay! 🎉🌸"
+];
+
+// ── FASE 3.1: Markdown rendering ──
+function renderMarkdown(text){
+  if(typeof marked !== 'undefined' && marked.parse){
+    try {
+      // Configure marked for safety
+      marked.setOptions({breaks:true, gfm:true});
+      let html = marked.parse(text);
+      // Basic sanitization — strip script tags
+      html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      return html;
+    } catch(e){ return escapeHtml(text); }
+  }
+  return escapeHtml(text);
+}
+function escapeHtml(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// ── FASE 2.1: Streaming text ──
+function addMsgStreaming(type, text, onComplete){
+  const c=document.getElementById('chatArea');
+  const d=document.createElement('div');d.className='msg '+type;
+  const now=new Date(),time=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const avatar = type==='agent' ? '<img src="assets/homura-avatar.jpg" alt="Homura">' : '👤';
+  d.innerHTML=`<div class="msg-avatar">${avatar}</div><div class="msg-content"><div class="msg-bubble"></div><div class="msg-time">${time}</div></div>`;
+  c.appendChild(d);
+  const bubble = d.querySelector('.msg-bubble');
+
+  if(type === 'agent'){
+    // Start lip sync for text animation
+    lipSyncActive = true;
+    agentState = 'chatting';
+
+    let i = 0;
+    const interval = setInterval(() => {
+      if(i < text.length){
+        bubble.textContent += text[i];
+        i++;
+        c.scrollTop = c.scrollHeight;
+      } else {
+        clearInterval(interval);
+        // Render final markdown
+        bubble.innerHTML = renderMarkdown(text);
+        lipSyncActive = false;
+        lipSyncValue = 0;
+        if(onComplete) onComplete();
+      }
+    }, 30); // ~30ms per char
+  } else {
+    bubble.innerHTML = renderMarkdown(text);
+    c.scrollTop = c.scrollHeight;
+  }
+}
+
+function addMsg(type,text){
+  // For user messages, just add immediately
+  addMsgStreaming(type, text);
+}
+
+function showTyping(){
+  const c=document.getElementById('chatArea');
+  const d=document.createElement('div');d.className='msg agent';d.id='typing';
+  d.innerHTML='<div class="msg-avatar"><img src="assets/homura-avatar.jpg" alt="Homura"></div><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+  // Show thinking state indicator
+  showStateIndicator('💭');
+}
+
+// ── FASE 2.2: Emotion tag parsing ──
+function parseEmotionTag(text){
+  const match = text.match(/^\[mood:(\w+)\]\s*/i);
+  if(match){
+    return { mood: match[1].toLowerCase(), cleanText: text.replace(match[0], '') };
+  }
+  return { mood: null, cleanText: text };
+}
+
+// Mood to TTS style hint mapping
+function moodToTTSStyle(mood){
+  const styles = {
+    happy: 'Nada ceria dan bersemangat, seperti karakter anime perempuan yang senang.',
+    sad: 'Nada lembut dan pelan, sedih tapi tetap hangat.',
+    angry: 'Nada sedikit tegas tapi tetap terkendali.',
+    surprised: 'Nada kaget dan penasaran, cepat dan energik.',
+    thinking: 'Nada berpikir, pelan dan reflektif.',
+    neutral: 'Nada ceria dan ramah, seperti karakter anime perempuan, tempo sedang.'
+  };
+  return styles[mood] || styles.neutral;
+}
+
+window.sendMsg=async function(){
+  const inp=document.getElementById('chatInput'),t=inp.value.trim();if(!t)return;
+  addMsg('user',t);inp.value='';
+  chatHistory.push({role:'user',content:t});
+  playSFX('send');
+  if(window.agentReact) agentReact('thinking');
+  showTyping();
+  try{
+    const r=await authedFetch(API_BASE+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,history:chatHistory.slice(-10)})});
+    const el=document.getElementById('typing');if(el)el.remove();
+    hideStateIndicator();
+    if(!r.ok){
+      addMsg('agent',fallbackResponses[Math.floor(Math.random()*fallbackResponses.length)]);
+      if(window.agentReact) agentReact('error');
+    }else{
+      const data=await r.json();
+      let reply=data.reply||'Hmm... 🤔';
+      // Strip JSON tool calls from display
+      reply=reply.replace(/\{"name"\s*:\s*"[^"]*"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}/g,'').replace(/\{[^}]*"command"\s*:[^}]*\}/g,'').trim();
+      if(!reply) reply='Siap, Master~ ✨';
+
+      // FASE 2.2: Parse emotion tag
+      const {mood, cleanText} = parseEmotionTag(reply);
+      if(mood){
+        setExprInternal(mood, 0.7);
+        document.getElementById('moodVal').textContent = {
+          neutral:'😐 Neutral',happy:'😊 Happy',sad:'😢 Sad',surprised:'😮 Surprised',angry:'😠 Angry'
+        }[mood] || '😊 Happy';
+      }
+
+      chatHistory.push({role:'assistant',content:cleanText});
+
+      // Start TTS request IMMEDIATELY in parallel (don't wait for text streaming)
+      const ttsStyle = moodToTTSStyle(mood);
+      const audioPromise = voiceEnabled ? speak(cleanText, ttsStyle) : null;
+
+      // FASE 2.1: Streaming text display
+      addMsgStreaming('agent', cleanText, async () => {
+        // Audio was already generating during streaming — just play when ready
+        if(voiceEnabled && audioPromise){
+          spawnParticles('responding', 5);
+          const audioBuf = await audioPromise;
+          if(audioBuf) await playWithLipSync(audioBuf);
+        }
+      });
+
+      playSFX('receive');
+      spawnParticles('responding', 3);
+    }
+  }catch(err){
+    const el=document.getElementById('typing');if(el)el.remove();
+    hideStateIndicator();
+    addMsg('agent',fallbackResponses[Math.floor(Math.random()*fallbackResponses.length)]);
+    if(window.agentReact) agentReact('error');
+  }
+  if(window.agentReact) agentReact('responding');
 };
+
+// ═══ FASE 2.4: Voice Input (SpeechRecognition) ═══
+let recognition = null;
+let isRecording = false;
+
+window.toggleMic = function(btn){
+  const micBtn = document.getElementById('micBtn');
+  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)){
+    showToast('🎙️ Browser tidak support speech recognition');
+    return;
+  }
+  if(isRecording){
+    if(recognition) recognition.stop();
+    return;
+  }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'id-ID';
+  recognition.interimResults = true;
+  recognition.continuous = false;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add('recording');
+    showToast('🎙️ Mendengarkan...');
+  };
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    document.getElementById('chatInput').value = transcript;
+    if(e.results[0].isFinal){
+      // Auto-send on final result
+      setTimeout(() => sendMsg(), 300);
+    }
+  };
+  recognition.onend = () => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+  };
+  recognition.onerror = (e) => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    if(e.error !== 'no-speech') showToast('🎙️ Error: ' + e.error);
+  };
+  recognition.start();
+};
+
+// ═══ Terminal ═══
+window.runCmd=function(){
+  const inp=document.getElementById('termInput'),out=document.getElementById('termOut');
+  const cmd=inp.value.trim();if(!cmd)return;
+  out.innerHTML+=`<div><span class="prompt">hermes@agent ~$</span> ${cmd}</div>`;
+  const cmds={help:'<span class="out">Commands: help, status, mood, skills, clear, hello, time</span>',
+    status:'<span class="out">Agent: Hermes | Status: Online | Mood: Happy ✨</span>',
+    mood:'<span class="out">😊 Happy (82/100) | Bond Lv.12 💜</span>',
+    skills:'<span class="out">Active: [Coding] [Research] [Creative] | Locked: [Music] 🔒</span>',
+    hello:'<span class="out">Hermes: Haii~ welcome! 💖✨</span>',
+    time:'<span class="out">'+new Date().toLocaleString()+'</span>'};
+  if(cmd==='clear')out.innerHTML='';
+  else out.innerHTML+=`<div>${cmds[cmd.toLowerCase()]||'<span class="err">Unknown: '+cmd+'</span>'}</div>`;
+  inp.value='';out.scrollTop=out.scrollHeight;
+};
+
+// ═══ Menu & Chat Dock ═══
+window.toggleMenu = function(){
+  const dd = document.getElementById('menuDropdown');
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+};
+// Close menu on outside click
+document.addEventListener('click', e => {
+  const dd = document.getElementById('menuDropdown');
+  if(dd && dd.style.display === 'block' && !e.target.closest('.menu-wrap')){
+    dd.style.display = 'none';
+  }
+});
+
+window.toggleChatExpand = function(){
+  const dock = document.getElementById('chatDock');
+  dock.classList.toggle('expanded');
+  // Scroll to bottom when expanding
+  const area = document.getElementById('chatArea');
+  if(dock.classList.contains('expanded')) area.scrollTop = area.scrollHeight;
+};
+
+// ═══ Terminal ═══
+window.showToast=function(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+};
+
+// ═══ Mobile drag-to-resize ═══
+(function(){
+  const handle=document.getElementById('dragHandle');
+  const vp=document.getElementById('viewport');
+  if(!handle||!vp)return;
+
+  let startY=0,startH=0,dragging=false;
+
+  function getY(e){return e.touches?e.touches[0].clientY:e.clientY}
+
+  function onDown(e){
+    if(window.innerWidth>768)return;
+    dragging=true;startY=getY(e);startH=vp.offsetHeight;
+    handle.classList.add('dragging');
+    document.body.style.cursor='row-resize';
+    e.preventDefault();
+  }
+
+  function onMove(e){
+    if(!dragging)return;
+    const y=getY(e),h=Math.max(120,Math.min(window.innerHeight*.75,startH+(y-startY)));
+    vp.style.height=h+'px';
+    if(renderer){renderer.setSize(vp.clientWidth,vp.clientHeight);camera.aspect=vp.clientWidth/vp.clientHeight;camera.updateProjectionMatrix()}
+    e.preventDefault();
+  }
+
+  function onUp(){
+    if(!dragging)return;dragging=false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor='';
+  }
+
+  handle.addEventListener('touchstart',onDown,{passive:false});
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onUp);
+  handle.addEventListener('mousedown',onDown);
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+})();
 </script>
 </body>
 </html>
