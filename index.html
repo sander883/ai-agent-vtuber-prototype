@@ -1434,8 +1434,13 @@ window.sendMsg=async function(){
     }else{
       const data=await r.json();
       let reply=data.reply||'Hmm... 🤔';
-      // Strip JSON tool calls from display
-      reply=reply.replace(/\{"name"\s*:\s*"[^"]*"\s*,\s*"arguments"\s*:\s*\{[^}]*\}\s*\}/g,'').replace(/\{[^}]*"command"\s*:[^}]*\}/g,'').trim();
+      // Strip any remaining tool calls / thinking tags
+      reply=reply.replace(/<thinking>[\s\S]*?<\/thinking>/gi,'');
+      reply=reply.replace(/<𝑎𝑛𝑡𝑚𝑙:thinking>[\s\S]*?<\/𝑎𝑛𝑡𝑚𝑙:thinking>/gi,'');
+      reply=reply.replace(/```[\s\S]*?```/g,'');
+      reply=reply.replace(/\{"name"\s*:\s*"[^"]*"\s*,\s*"arguments"\s*:/g,'');
+      reply=reply.replace(/\{[^}]*"command"\s*:[^}]*\}/g,'');
+      reply=reply.replace(/[{}]/g,'').replace(/\n{3,}/g,'\n\n').trim();
       if(!reply) reply='Siap, Master~ ✨';
 
       // FASE 2.2: Parse emotion tag
